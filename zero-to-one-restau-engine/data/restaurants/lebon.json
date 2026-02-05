@@ -1,0 +1,185 @@
+{
+  "id": "lebon",
+  "slug": "lebon",
+  "domain": "lebon.bj",
+  "identity": {
+    "name": "Le Bon",
+    "slogan": "Saveurs authentiques, moments partagés",
+    "logo": "https://images.unsplash.com/photo-1620288627223-53302f4e8c74?w=200&auto=format&fit=crop",
+    "type": "restaurant-italien"
+  },
+  "contact": {
+    "whatsapp": "+22996123456",
+    "phone": "+229 21 30 45 67",
+    "email": "contact@lebon.bj",
+    "address": "Avenue Jean-Paul II, Fidjrossè-Calavi, Cotonou, Bénin",
+    "google_maps": "https://maps.app.goo.gl/exampleLeBonCotonou"
+  },
+  "menu": {
+    "currency": "FCFA",
+    "categories": [
+      {
+        "id": "pizzas-classiques",
+        "name": "Pizzas Classiques",
+        "items": [
+          {
+            "id": "margherita",
+            "name": "Margherita",
+            "price": 4500,
+            "description": "Tomate, mozzarella, basilic frais",
+            "image": "https://images.unsplash.com/photo-1600028068383-ea11a7a101f3?w=800",
+            "available": true
+          },
+          {
+            "id": "reine",
+            "name": "Reine",
+            "price": 5500,
+            "description": "Jambon, champignons, mozzarella",
+            "image": "https://images.unsplash.com/photo-1593560708920-61dd98c6e4ee?w=800",
+            "available": true
+          },
+          {
+            "id": "4-fromages",
+            "name": "4 Fromages",
+            "price": 6500,
+            "description": "Mozzarella, gorgonzola, parmesan, chèvre",
+            "image": "https://images.unsplash.com/photo-1574071318508-1cdbab80d174?w=800",
+            "available": true
+          }
+        ]
+      },
+      {
+        "id": "pizzas-gourmandes",
+        "name": "Pizzas Gourmandes",
+        "items": [
+          {
+            "id": "saumon",
+            "name": "Saumon Fumé",
+            "price": 8500,
+            "description": "Saumon fumé, crème fraîche, aneth",
+            "image": "https://images.unsplash.com/photo-1600028068383-ea11a7a101f3?w=800",
+            "available": true
+          }
+        ]
+      },
+      {
+        "id": "desserts",
+        "name": "Desserts",
+        "items": [
+          {
+            "id": "tiramisu",
+            "name": "Tiramisu Maison",
+            "price": 3000,
+            "description": "Café, mascarpone, cacao",
+            "image": "https://images.unsplash.com/photo-1571877227200-81cd0a0d8d5b?w=800",
+            "available": true
+          },
+          {
+            "id": "creme-brulee",
+            "name": "Crème Brûlée",
+            "price": 3500,
+            "description": "Vanille Bourbon, caramel croquant",
+            "image": "https://images.unsplash.com/photo-1615484477775-5a763d826d5c?w=800",
+            "available": true
+          }
+        ]
+      }
+    ]
+  },
+  "business": {
+    "id": "lebon-business",
+    "opening_hours": [
+      { "day": "Lundi", "open": "11:30", "close": "22:30" },
+      { "day": "Mardi", "open": "11:30", "close": "22:30" },
+      { "day": "Mercredi", "open": "11:30", "close": "22:30" },
+      { "day": "Jeudi", "open": "11:30", "close": "22:30" },
+      { "day": "Vendredi", "open": "11:30", "close": "23:30" },
+      { "day": "Samedi", "open": "11:30", "close": "23:30" },
+      { "day": "Dimanche", "open": "12:00", "close": "22:00" }
+    ],
+    "delivery_fee": 2000,
+    "services": ["sur place", "à emporter", "livraison", "réservation"],
+    "capacity": 60,
+    "payment_methods": ["mobile money", "cash", "carte bancaire", "wave"]
+  },
+  "appearance": {
+    "template": "template1",
+    "colors": {
+      "primary": "#C8102E",
+      "secondary": "#FFD700"
+    },
+    "show_images": true,
+    "typography": "Inter, system-ui, sans-serif",
+    "dark_mode": false,
+    "hero_background": {
+      "type": "video",
+      "url": "https://assets.mixkit.co/videos/preview/mixkit-pizza-restaurant-kitchen-12345-large.mp4",
+      "poster": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop",
+      "autoplay": true,
+      "muted": true,
+      "loop": true
+    }
+  },
+  "marketing": {
+    "newsletter": true,
+    "social_links": {
+      "facebook": "https://facebook.com/leboncotonou",
+      "instagram": "https://instagram.com/lebon.restaurant",
+      "tiktok": "https://tiktok.com/@lebonbj"
+    },
+    "testimonials": [
+      {
+        "author": "Koffi A.",
+        "text": "La meilleure adresse pour une vraie pizza italienne à Cotonou. Service rapide et prix corrects."
+      },
+      {
+        "author": "Sophie D.",
+        "text": "Ambiance conviviale, pâte fine et ingrédients frais. On y retourne chaque semaine !"
+      }
+    ],
+    "promotions": [
+      {
+        "title": "Mercredi Pizza Family",
+        "description": "Achetez 2 grandes pizzas → la 3ᵉ à -50%"
+      },
+      {
+        "title": "Livraison gratuite",
+        "description": "Dès 15 000 FCFA dans Fidjrossè et Calavi"
+      }
+    ],
+    "seo_keywords": [
+      "restaurant italien cotonou",
+      "pizza fidjrossè",
+      "meilleure pizza bénin",
+      "livraison pizza cotonou",
+      "le bon restaurant"
+    ]
+  },
+  "analytics": {
+    "views": 0,
+    "whatsapp_clicks": 0,
+    "conversion_rate": 0,
+    "last_update": "2026-01-29T09:00:00Z"
+  },
+  "pages": {
+    "home": {
+      "title": "Le Bon – Saveurs Italiennes Authentiques",
+      "subtitle": "Venez partager un moment gourmand",
+      "text": "Pizzas au feu de bois, pâtes fraîches et desserts maison préparés avec passion."
+    },
+    "about": {
+      "title": "Notre Histoire",
+      "text": "Ouvert en 2024, Le Bon est né de la rencontre entre la tradition italienne et l'accueil béninois."
+    },
+    "faq": [
+      {
+        "question": "Quels moyens de paiement acceptez-vous ?",
+        "answer": "Mobile Money (MTN, Moov, Wave), espèces et cartes bancaires."
+      },
+      {
+        "question": "Faites-vous de la livraison ?",
+        "answer": "Oui, dans tout Cotonou et environs (frais selon zone)."
+      }
+    ]
+  }
+}

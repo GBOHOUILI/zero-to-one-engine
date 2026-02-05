@@ -1,0 +1,183 @@
+{
+  "id": "pizza-roma",
+  "slug": "pizza-roma",
+  "domain": "pizzaroma.bj",
+  "identity": {
+    "name": "Pizza Roma",
+    "slogan": "La vraie saveur italienne",
+    "logo": "https://images.unsplash.com/photo-1620288627223-53302f4e8c74?w=200&auto=format&fit=crop",
+    "type": "restaurant-italien"
+  },
+  "contact": {
+    "whatsapp": "+33612345678",
+    "phone": "+229 1234 5678",
+    "email": "contact@pizzaroma.bj",
+    "address": "Rue des Cocotiers, Fidjrossè, Cotonou, Bénin",
+    "google_maps": "https://maps.app.goo.gl/examplePizzaRoma"
+  },
+  "menu": {
+    "currency": "€",
+    "categories": [
+      {
+        "id": "pizzas",
+        "name": "Nos Pizzas Classiques",
+        "items": [
+          {
+            "id": "margherita",
+            "name": "Margherita",
+            "price": 8.5,
+            "shortDescription": "Sauce tomate, mozzarella fondante, basilic frais",
+            "image": "https://images.unsplash.com/photo-1600028068383-ea11a7a101f3?w=800&auto=format&fit=crop",
+            "available": true,
+            "ingredients": [
+              "sauce tomate maison",
+              "mozzarella fior di latte",
+              "basilic frais",
+              "huile d'olive extra vierge"
+            ],
+            "allergens": ["gluten", "lait"],
+            "accompaniments": ["salade verte", "frites maison"],
+            "preparationTime": "8-12 min",
+            "calories": 850
+          },
+          {
+            "id": "diavola",
+            "name": "Diavola",
+            "price": 10,
+            "shortDescription": "Salami piquant, piment séché",
+            "image": "https://images.unsplash.com/photo-1628840042765-356cda2f5d5f?w=800&auto=format&fit=crop",
+            "available": true,
+            "ingredients": [
+              "sauce tomate",
+              "mozzarella",
+              "salami calabrais piquant",
+              "piment séché"
+            ],
+            "allergens": ["gluten", "lait"]
+          },
+          {
+            "id": "quattro-formaggi",
+            "name": "Quattro Formaggi",
+            "price": 11,
+            "shortDescription": "Quatre fromages fondants",
+            "image": "https://images.unsplash.com/photo-1574071318508-1cdbab80d174?w=800&auto=format&fit=crop",
+            "available": false
+          }
+        ]
+      },
+      {
+        "id": "boissons",
+        "name": "Nos Boissons",
+        "items": [
+          {
+            "id": "coca",
+            "name": "Coca-Cola",
+            "price": 2.5,
+            "shortDescription": "33 cl – glacé",
+            "image": "https://images.unsplash.com/photo-1624552184280-9e9631bbeee9?w=800&auto=format&fit=crop",
+            "available": true,
+            "categoryType": "boisson"
+          },
+          {
+            "id": "wine-chianti",
+            "name": "Chianti Classico DOCG",
+            "price": 28,
+            "shortDescription": "75 cl – vin rouge italien",
+            "image": "https://images.unsplash.com/photo-1510812431401-6e8a8d9e87e8?w=800&auto=format&fit=crop",
+            "available": true,
+            "categoryType": "boisson",
+            "fullDescription": "Vin rouge corsé aux arômes de cerise noire, violette et épices douces. Parfait avec les pizzas à la viande."
+          }
+        ]
+      }
+    ]
+  },
+  "business": {
+    "id": "pizza-roma-business",
+    "opening_hours": [
+      { "day": "Lundi", "open": "11:30", "close": "22:00" },
+      { "day": "Mardi", "open": "11:30", "close": "22:00" },
+      { "day": "Mercredi", "open": "11:30", "close": "22:00" },
+      { "day": "Jeudi", "open": "11:30", "close": "22:00" },
+      { "day": "Vendredi", "open": "11:30", "close": "23:00" },
+      { "day": "Samedi", "open": "11:30", "close": "23:00" },
+      { "day": "Dimanche", "open": "12:00", "close": "22:00" }
+    ],
+    "delivery_fee": 1500,
+    "services": ["sur place", "à emporter", "livraison"],
+    "capacity": 45,
+    "payment_methods": ["mobile money", "cash", "carte bancaire"]
+  },
+  "appearance": {
+    "template": "template1",
+    "colors": {
+      "primary": "#2f81d3",
+      "secondary": "#FFC107"
+    },
+    "show_images": true,
+    "typography": "Inter, system-ui, sans-serif",
+    "dark_mode": false,
+    "hero_background": {
+      "type": "image",
+      "url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop",
+      "alt": "Intérieur chaleureux de Pizza Roma"
+    }
+  },
+  "marketing": {
+    "newsletter": true,
+    "social_links": {
+      "facebook": "https://facebook.com/pizzaroma",
+      "instagram": "https://instagram.com/pizzaroma",
+      "tiktok": "https://tiktok.com/@pizzaroma.bj"
+    },
+    "testimonials": [
+      {
+        "author": "Aïcha K.",
+        "text": "Les meilleures pizzas de Cotonou ! La pâte est fine et croustillante."
+      },
+      {
+        "author": "Marco L.",
+        "text": "Vraiment comme en Italie. Le tiramisu est à tomber."
+      }
+    ],
+    "promotions": [
+      {
+        "title": "Happy Hour Pizza",
+        "description": "Toute pizza à -20% de 17h à 19h du lundi au jeudi"
+      }
+    ],
+    "seo_keywords": [
+      "pizza cotonou",
+      "restaurant italien bénin",
+      "livraison pizza fidjrossè",
+      "meilleure pizza cotonou"
+    ]
+  },
+  "analytics": {
+    "views": 1247,
+    "whatsapp_clicks": 89,
+    "conversion_rate": 7.2,
+    "last_update": "2026-01-28T18:45:00Z"
+  },
+  "pages": {
+    "home": {
+      "title": "Bienvenue chez Pizza Roma",
+      "subtitle": "La vraie saveur italienne à Cotonou",
+      "text": "Découvrez nos pizzas cuites au feu de bois et nos desserts maison préparés avec amour."
+    },
+    "about": {
+      "title": "Notre Histoire",
+      "text": "Fondé en 2024 par une famille passionnée de cuisine italienne..."
+    },
+    "faq": [
+      {
+        "question": "Acceptez-vous les paiements mobile money ?",
+        "answer": "Oui, MTN MoMo et Moov Money sont acceptés."
+      },
+      {
+        "question": "Combien de temps pour la livraison ?",
+        "answer": "30 à 45 minutes dans Fidjrossè et alentours."
+      }
+    ]
+  }
+}
