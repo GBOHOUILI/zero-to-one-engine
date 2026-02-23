@@ -120,7 +120,6 @@ export default function Header({
           >
             Réserver
           </a>
-
           {/* Burger Mobile */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
