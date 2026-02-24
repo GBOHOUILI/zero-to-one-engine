@@ -37,6 +37,9 @@ export default async function HomePageTemplate({
           slogan: config.identity.slogan,
           logo: config.identity.logo,
           type: config.identity.type,
+          // on transmet aussi les éventuels title/description présents dans la config
+          title: config.identity.title,
+          description: config.identity.description,
         }}
         contact={{ whatsapp: config.contact.whatsapp }}
         colors={colors}

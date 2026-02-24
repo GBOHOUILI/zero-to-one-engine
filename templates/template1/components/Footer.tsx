@@ -2,7 +2,7 @@ export default function Footer({
   identity,
   marketing = {}, // fallback objet vide
 }: {
-  identity: { name: string; slogan?: string; logo?: string };
+  identity: { name: string; slogan?: string; logo?: string; title?: string; description?: string };
   marketing?: {
     newsletter?: boolean;
     socials?: { facebook?: string; instagram?: string };

@@ -4,7 +4,9 @@ import { ChevronDown } from "lucide-react";
 interface HeroProps {
   identity: {
     name: string;
-    slogan?: string;
+    slogan: string;
+    title?: string;
+    description?: string;
   };
   colors?: {
     // ← colors est optionnel
@@ -83,9 +85,12 @@ export default function Hero({
 
       {/* Contenu */}
       <div className="relative z-10 container mx-auto px-5 sm:px-8 lg:px-12 text-center pt-20 sm:pt-28 pb-24">
-        <div className="max-w-4xl mx-auto space-y-8 sm:space-y-12">
+        <div className="max-w-4xl mx-auto">
           <p className="text-sm sm:text-base uppercase tracking-[0.3em] font-medium text-white/90 animate-fade-in">
             Bienvenue à
+          </p>
+          <p>
+            {identity.title}
           </p>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white drop-shadow-2xl animate-fade-in-up">
@@ -106,12 +111,12 @@ export default function Hero({
             ))}
           </h1>
 
-          {identity.slogan && (
+          {identity.description && (
             <p
               className="text-lg sm:text-xl md:text-2xl font-light text-white/95 max-w-3xl mx-auto leading-relaxed animate-fade-in"
               style={{ animationDelay: "400ms" }}
             >
-              {identity.slogan}
+              {identity.description}
             </p>
           )}
 
