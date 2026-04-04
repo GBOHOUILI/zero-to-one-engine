@@ -331,14 +331,17 @@ export default function SuperAdminRestaurants() {
                   <label className="block text-emerald-700 text-xs font-medium mb-1.5 uppercase tracking-wider">
                     Couleur
                   </label>
-                  <input
-                    type="color"
-                    value={form.primaryColor}
-                    onChange={(e) =>
-                      setForm({ ...form, primaryColor: e.target.value })
-                    }
-                    className="w-full h-10 bg-emerald-900/20 border border-emerald-900/40 rounded-lg cursor-pointer"
-                  />
+
+                  <div className="relative h-10 w-full p-1 border border-emerald-900/40 text-emerald-700 rounded-lg">
+                    <input
+                      type="color"
+                      value={form.primaryColor}
+                      onChange={(e) =>
+                        setForm({ ...form, primaryColor: e.target.value })
+                      }
+                      className="absolute inset-0 w-full h-full cursor-pointer rounded-lg appearance-none border-0 p-0 bg-transparent"
+                    />
+                  </div>
                 </div>
               </div>
               <div className="flex gap-3 pt-2">

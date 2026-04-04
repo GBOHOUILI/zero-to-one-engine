@@ -46,7 +46,7 @@ export default function SuperAdminSidebar() {
     href === "/super-admin" ? pathname === href : pathname.startsWith(href);
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-60 bg-[#0d1a12] flex flex-col z-40 border-r border-emerald-900/30">
+    <aside className="fixed left-0 top-0 h-full w-70 bg-[#0d1a12] flex flex-col z-40 border-r border-emerald-900/100">
       {/* Brand */}
       <div className="p-5 border-b border-emerald-900/30">
         <div className="flex items-center gap-3">

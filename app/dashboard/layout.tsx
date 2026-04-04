@@ -18,10 +18,10 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   router.push("/login");
+    //   return;
+    // }
     if (user?.role === "SUPER_ADMIN") {
       router.push("/super-admin");
       return;
