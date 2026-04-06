@@ -5,20 +5,97 @@ function getToken(): string | null {
   return localStorage.getItem("zto_token");
 }
 
+function cleanParams(params: Record<string, any>) {
+  return Object.fromEntries(
+    Object.entries(params).filter(
+      ([, v]) => v !== undefined && v !== null && v !== "",
+    ),
+  );
+}
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve();
+  });
+  failedQueue = [];
+};
+
 async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = getToken();
+  const token = getToken(); // access token
   const isFormData = options.body instanceof FormData;
 
   const headers: Record<string, string> = {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(!isFormData ? { "Content-Type": "application/json" } : {}),
-    ...((options.headers as Record<string, string>) || {}),
+    ...(options.headers as Record<string, string>),
   };
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  let res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  // Si 401 → tentative de refresh
+  if (res.status === 401) {
+    const refreshToken = localStorage.getItem("zto_refresh_token");
+
+    if (!refreshToken) {
+      // Pas de refresh token → déconnexion
+      useAuthStore.getState().logout();
+      window.location.href = "/login";
+      throw new Error("Session expirée");
+    }
+
+    if (isRefreshing) {
+      // Attendre que le refresh en cours se termine
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then(() => apiFetch(path, options));
+    }
+
+    isRefreshing = true;
+
+    try {
+      const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!refreshRes.ok) throw new Error("Refresh failed");
+
+      const { access_token, refresh_token } = await refreshRes.json();
+
+      // Mise à jour du store + localStorage
+      const { user } = useAuthStore.getState();
+      if (user) {
+        useAuthStore.getState().setAuth(user, access_token, refresh_token);
+      }
+
+      // Relancer les requêtes en file d’attente
+      processQueue();
+
+      // Réessayer la requête originale avec le nouveau token
+      headers.Authorization = `Bearer ${access_token}`;
+      res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    } catch (err) {
+      processQueue(err);
+      useAuthStore.getState().logout();
+      window.location.href = "/login";
+      throw new Error("Session expirée. Veuillez vous reconnecter.");
+    } finally {
+      isRefreshing = false;
+    }
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -26,6 +103,7 @@ async function apiFetch<T>(
       err?.error?.message || err?.message || `Erreur ${res.status}`,
     );
   }
+
   const text = await res.text();
   return text ? JSON.parse(text) : ({} as T);
 }
@@ -97,7 +175,7 @@ export const menusApi = {
       body: JSON.stringify({ categories: cats }),
     }),
   getItems: (p?: any) => {
-    const q = p ? "?" + new URLSearchParams(p).toString() : "";
+    const q = p ? "?" + new URLSearchParams(cleanParams(p)).toString() : "";
     return apiFetch<{ data: any[]; meta: any }>(`/resto-admin/menus/items${q}`);
   },
   createItem: (fd: FormData) =>
@@ -202,7 +280,7 @@ export const subscriptionApi = {
 
 export const superAdminApi = {
   getRestaurants: (p?: any) => {
-    const q = p ? "?" + new URLSearchParams(p).toString() : "";
+    const q = p ? "?" + new URLSearchParams(cleanParams(p)).toString() : "";
     return apiFetch<any>(`/super-admin/restaurants${q}`);
   },
   createRestaurant: (d: any) =>
@@ -248,4 +326,40 @@ export const superAdminApi = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+};
+
+// ─── Extensions super-admin pour la gestion complète des restaurants ──────────
+export const superAdminRestaurantApi = {
+  getById: (id: string) => apiFetch<any>(`/super-admin/restaurants/${id}`),
+  resetAdminPassword: (id: string) =>
+    apiFetch(`/super-admin/restaurants/${id}/reset-password`, {
+      method: "POST",
+    }),
+  updateIdentity: (id: string, d: any) =>
+    apiFetch(`/super-admin/restaurants/${id}/identity`, {
+      method: "PATCH",
+      body: JSON.stringify(d),
+    }),
+  updateDesign: (id: string, d: any) =>
+    apiFetch(`/super-admin/restaurants/${id}/design`, {
+      method: "PATCH",
+      body: JSON.stringify(d),
+    }),
+  updateStatus: (id: string, status: string) =>
+    apiFetch(`/super-admin/restaurants/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+  hardDelete: (id: string) =>
+    apiFetch(`/super-admin/restaurants/${id}/hard-delete`, {
+      method: "DELETE",
+    }),
+  getMenuCategories: (restaurantId: string) =>
+    apiFetch<any[]>(
+      `/super-admin/restaurants/${restaurantId}/menus/categories`,
+    ),
+  getAnalytics: (restaurantId: string) =>
+    apiFetch<any>(
+      `/super-admin/analytics/restaurant/${restaurantId}/dashboard`,
+    ),
 };

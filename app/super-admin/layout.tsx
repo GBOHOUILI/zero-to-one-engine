@@ -15,10 +15,10 @@ export default function SuperAdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // if (!isAuthenticated) {
-    //   router.push("/login");
-    //   return;
-    // }
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
 
     if (user?.role !== "SUPER_ADMIN") {
       router.push("/dashboard");

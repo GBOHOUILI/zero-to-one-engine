@@ -18,10 +18,10 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // if (!isAuthenticated) {
-    //   router.push("/login");
-    //   return;
-    // }
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
     if (user?.role === "SUPER_ADMIN") {
       router.push("/super-admin");
       return;
@@ -29,7 +29,16 @@ export default function DashboardLayout({
 
     restaurantApi
       .getMyInfo()
-      .then(setRestaurant)
+      .then((r) => {
+        setRestaurant(r);
+        // Inject brand color as CSS variable for all dashboard pages
+        if (r?.primary_color) {
+          document.documentElement.style.setProperty(
+            "--brand",
+            r.primary_color,
+          );
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [isAuthenticated, user]);

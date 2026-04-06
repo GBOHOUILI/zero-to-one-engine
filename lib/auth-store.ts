@@ -10,9 +10,11 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
-  isAuth: boolean;
-  setAuth: (user: User, token: string) => void;
+  token: string | null; // access_token
+  refreshToken: string | null;
+  isAuthenticated: boolean;
+
+  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
 
@@ -21,20 +23,43 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
-      isAuth: false,
-      setAuth: (user, token) => {
-        if (typeof window !== "undefined")
-          localStorage.setItem("zto_token", token);
-        set({ user, token, isAuth: true });
+      refreshToken: null,
+      isAuthenticated: false,
+
+      setAuth: (user, accessToken, refreshToken) => {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("zto_token", accessToken);
+          localStorage.setItem("zto_refresh_token", refreshToken); // ← AJOUT
+        }
+        set({
+          user,
+          token: accessToken,
+          refreshToken,
+          isAuthenticated: true,
+        });
       },
+
       logout: () => {
-        if (typeof window !== "undefined") localStorage.removeItem("zto_token");
-        set({ user: null, token: null, isAuth: false });
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("zto_token");
+          localStorage.removeItem("zto_refresh_token");
+        }
+        set({
+          user: null,
+          token: null,
+          refreshToken: null,
+          isAuthenticated: false,
+        });
       },
     }),
     {
       name: "zto-auth",
-      partialize: (s) => ({ user: s.user, token: s.token, isAuth: s.isAuth }),
+      partialize: (s) => ({
+        user: s.user,
+        token: s.token,
+        refreshToken: s.refreshToken,
+        isAuthenticated: s.isAuthenticated,
+      }),
     },
   ),
 );

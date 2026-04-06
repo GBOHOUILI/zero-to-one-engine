@@ -1,47 +1,72 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { analyticsApi } from "@/lib/api";
+import {
+  PeakHoursChart,
+  AreaChart,
+  DonutChart,
+  HorizontalBars,
+  RadialProgress,
+  hexToRgba,
+  ChartLegend,
+} from "@/components/charts";
 import {
   Eye,
   MousePointerClick,
   TrendingUp,
-  Star,
-  Loader2,
-  Clock,
-  ArrowUpRight,
   Award,
-  Activity,
+  Clock,
+  Loader2,
+  ArrowUpRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
-function MetricCard({ label, value, icon: Icon, color, sub, trend }: any) {
+function Skeleton({ className = "" }: { className?: string }) {
+  return (
+    <div className={`bg-zinc-100 rounded-xl animate-pulse ${className}`} />
+  );
+}
+
+function MetricCard({ label, value, icon: Icon, color, sub, delay = 0 }: any) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
       className="bg-white rounded-2xl p-5 border border-zinc-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ backgroundColor: color + "15" }}
+          style={{ backgroundColor: hexToRgba(color, 0.1) }}
         >
           <Icon size={18} style={{ color }} />
         </div>
-        {trend && (
-          <span className="flex items-center gap-1 text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
-            <ArrowUpRight size={10} />
-            {trend}
-          </span>
-        )}
+        <ArrowUpRight size={14} className="text-zinc-300" />
       </div>
-      <p className="text-3xl font-black text-zinc-900 leading-none mb-1.5">
-        {value}
+      <p className="text-[34px] font-black text-zinc-900 leading-none">
+        {value ?? "—"}
       </p>
-      <p className="text-zinc-500 text-sm font-medium">{label}</p>
+      <p className="text-zinc-500 text-sm font-medium mt-1.5">{label}</p>
       {sub && <p className="text-zinc-400 text-xs mt-0.5">{sub}</p>}
     </motion.div>
+  );
+}
+
+function Card({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`bg-white rounded-2xl border border-zinc-100 p-6 ${className}`}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -51,9 +76,13 @@ export default function AnalyticsPage() {
   const [topItems, setTopItems] = useState<any[]>([]);
   const [funnel, setFunnel] = useState<any[]>([]);
   const [score, setScore] = useState<any>(null);
+  const [brand, setBrand] = useState("#16a34a");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const b = document.documentElement.style.getPropertyValue("--brand");
+    if (b) setBrand(b);
+
     Promise.allSettled([
       analyticsApi.getDashboard().then(setDashboard),
       analyticsApi.getPeakHours().then(setPeakHours),
@@ -63,301 +92,256 @@ export default function AnalyticsPage() {
     ]).finally(() => setLoading(false));
   }, []);
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center py-32">
-        <Loader2 className="animate-spin text-zinc-300" size={28} />
-      </div>
-    );
-
-  const summary = dashboard?.summary || {};
-  const maxOrders = Math.max(...peakHours.map((h) => h.orders), 1);
+  const summary = dashboard?.summary ?? {};
+  const scoreColor =
+    score?.score >= 80 ? "#16a34a" : score?.score >= 50 ? "#f59e0b" : "#ef4444";
   const peakHour = peakHours.reduce(
     (max, h) => (h.orders > max.orders ? h : max),
-    { orders: 0, label: "" },
+    { orders: 0, label: "—" },
   );
 
+  // Données area chart (vues par jour simulées depuis funnel)
+  const areaData = funnel
+    .filter((h) => h.views > 0)
+    .map((h) => ({
+      label: h.label,
+      value: h.views,
+    }));
+
+  // Donut conversion
+  const totalViews = summary.totalViews ?? 0;
+  const totalClicks = summary.whatsappClicks ?? 0;
+  const donutConv = [
+    { label: "Clics WA", value: totalClicks, color: brand },
+    {
+      label: "Vues sans clic",
+      value: Math.max(totalViews - totalClicks, 0),
+      color: hexToRgba(brand, 0.15),
+    },
+  ];
+
   return (
-    <div className="space-y-8 animate-fade-up">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-[22px] font-bold text-zinc-900 tracking-tight">
+        <h1 className="text-2xl font-black text-zinc-900 tracking-tight">
           Analytics
         </h1>
         <p className="text-zinc-400 text-sm mt-0.5">
-          Performance de votre restaurant — données en temps réel
+          Performance de votre restaurant en temps réel
         </p>
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          label="Vues du site"
-          value={summary.totalViews ?? 0}
-          icon={Eye}
-          color="#3b82f6"
-        />
-        <MetricCard
-          label="Clics WhatsApp"
-          value={summary.whatsappClicks ?? 0}
-          icon={MousePointerClick}
-          color="#16a34a"
-          trend="→ cmd"
-        />
-        <MetricCard
-          label="Conversion"
-          value={summary.conversionRate ?? "0%"}
-          icon={TrendingUp}
-          color="#8b5cf6"
-          sub="vues → clics"
-        />
-        <MetricCard
-          label="Score profil"
-          value={`${score?.score ?? 0}%`}
-          icon={Award}
-          color={
-            score?.score >= 80
-              ? "#16a34a"
-              : score?.score >= 50
-                ? "#f59e0b"
-                : "#ef4444"
-          }
-          sub={
-            score?.missing?.length
-              ? `${score.missing.length} éléments manquants`
-              : "Profil complet !"
-          }
-        />
-      </div>
+      {/* KPIs */}
+      {loading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            label="Vues totales"
+            value={totalViews}
+            icon={Eye}
+            color="#3b82f6"
+            delay={0}
+          />
+          <MetricCard
+            label="Clics WhatsApp"
+            value={totalClicks}
+            icon={MousePointerClick}
+            color={brand}
+            delay={0.05}
+          />
+          <MetricCard
+            label="Taux de conversion"
+            value={summary.conversionRate ?? "0%"}
+            icon={TrendingUp}
+            color="#8b5cf6"
+            sub="vues → clics WA"
+            delay={0.1}
+          />
+          <MetricCard
+            label="Score profil"
+            value={`${score?.score ?? 0}%`}
+            icon={Award}
+            color={scoreColor}
+            sub={
+              score?.missing?.length
+                ? `${score.missing.length} manquants`
+                : "Complet !"
+            }
+            delay={0.15}
+          />
+        </div>
+      )}
 
-      {/* Heure de pic insight */}
+      {/* Insight callout */}
       {peakHour.orders > 0 && (
-        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-50 border border-blue-100 rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center gap-4 p-5 rounded-2xl border"
+          style={{
+            backgroundColor: hexToRgba(brand, 0.05),
+            borderColor: hexToRgba(brand, 0.2),
+          }}
+        >
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: brand }}
+          >
             <Clock size={20} className="text-white" />
           </div>
           <div>
             <p className="font-bold text-zinc-900">
-              Pic de commandes : {peakHour.label}
+              Pic de commandes à {peakHour.label}
             </p>
             <p className="text-zinc-600 text-sm mt-0.5">
-              Vos clients commandent le plus à <strong>{peakHour.label}</strong>
-              . Assurez-vous d'être disponible sur WhatsApp à cette heure.
+              Assurez-vous d'être disponible sur WhatsApp à cette heure pour
+              maximiser vos conversions.
             </p>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* Heatmap heures */}
-      <div className="bg-white rounded-2xl border border-zinc-100 p-6">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <p className="font-bold text-zinc-900">Activité par heure</p>
+      {/* Charts row 1 : Peak hours (large) + Donut conversion */}
+      <div className="grid lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2">
+          <Card>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <p className="font-bold text-zinc-900">Heures de pic</p>
+                <p className="text-zinc-400 text-xs mt-0.5">
+                  Commandes par heure de la journée
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-zinc-400">Heure de pic</p>
+                <p className="text-sm font-bold" style={{ color: brand }}>
+                  {peakHour.label}
+                </p>
+              </div>
+            </div>
+            {loading ? (
+              <Skeleton className="h-36" />
+            ) : (
+              <PeakHoursChart data={peakHours} color={brand} />
+            )}
+          </Card>
+        </div>
+
+        <Card>
+          <div className="mb-4">
+            <p className="font-bold text-zinc-900">Tunnel de conversion</p>
             <p className="text-zinc-400 text-xs mt-0.5">
-              Nombre de commandes par heure de la journée
+              Vues qui deviennent des clics WhatsApp
             </p>
           </div>
-          <Activity size={16} className="text-zinc-300" />
-        </div>
-        <div className="flex items-end gap-1 h-28">
-          {peakHours.map((h, i) => {
-            const isPeak =
-              h.orders === Math.max(...peakHours.map((x) => x.orders));
-            const height = Math.max(4, (h.orders / maxOrders) * 100);
-            return (
-              <motion.div
-                key={h.hour}
-                initial={{ height: 0 }}
-                animate={{ height: `${height}%` }}
-                transition={{ delay: i * 0.02, duration: 0.4 }}
-                className="flex-1 flex flex-col items-center justify-end group relative"
-                style={{ height: "100px" }}
-              >
-                <div
-                  className="w-full rounded-t-sm cursor-default"
-                  style={{
-                    height: `${height}%`,
-                    backgroundColor: isPeak ? "#16a34a" : "#16a34a25",
-                    minHeight: "4px",
-                  }}
-                />
-                {/* Tooltip */}
-                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  {h.label}: {h.orders}
-                </div>
-                {h.hour % 6 === 0 && (
-                  <span className="text-[9px] text-zinc-400 mt-1 absolute bottom-[-18px]">
-                    {h.label}
-                  </span>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-        <div className="mt-6 flex items-center gap-4 text-xs text-zinc-400">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-emerald-600" /> Heure de pic
+          <div className="flex flex-col items-center gap-4">
+            {loading ? (
+              <Skeleton className="w-36 h-36 rounded-full" />
+            ) : (
+              <DonutChart
+                data={donutConv}
+                size={144}
+                thickness={24}
+                centerValue={summary.conversionRate ?? "0%"}
+                centerLabel="taux"
+              />
+            )}
+            <ChartLegend
+              items={donutConv.map((d) => ({ ...d, value: String(d.value) }))}
+            />
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-emerald-100" /> Autres heures
-          </div>
-        </div>
+        </Card>
       </div>
 
-      {/* Top items + Funnel */}
+      {/* Charts row 2 : Area vues + Top items */}
       <div className="grid lg:grid-cols-2 gap-5">
-        {/* Top plats */}
-        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="font-bold text-zinc-900">Top plats commandés</p>
-              <p className="text-zinc-400 text-xs mt-0.5">
-                Par nombre de commandes
-              </p>
+        {/* Area chart vues */}
+        <Card>
+          <div className="mb-4">
+            <p className="font-bold text-zinc-900">Évolution des vues</p>
+            <p className="text-zinc-400 text-xs mt-0.5">
+              Par heure sur les dernières 24h
+            </p>
+          </div>
+          {loading ? (
+            <Skeleton className="h-28" />
+          ) : areaData.length > 1 ? (
+            <AreaChart data={areaData} color={brand} height={110} />
+          ) : (
+            <div className="flex items-center justify-center h-24 text-zinc-400 text-sm">
+              Pas assez de données
             </div>
-            <Star size={16} className="text-zinc-300" />
-          </div>
-          <div className="space-y-3">
-            {topItems.length === 0 && (
-              <p className="text-zinc-400 text-sm">Aucune donnée disponible</p>
-            )}
-            {topItems.map((item, i) => {
-              const maxRev = Math.max(...topItems.map((x) => x.times_ordered));
-              const pct = (item.times_ordered / maxRev) * 100;
-              return (
-                <div key={item.item_id} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
-                          i === 0
-                            ? "bg-amber-100 text-amber-600"
-                            : i === 1
-                              ? "bg-zinc-100 text-zinc-500"
-                              : i === 2
-                                ? "bg-orange-50 text-orange-500"
-                                : "bg-zinc-50 text-zinc-400"
-                        }`}
-                      >
-                        {i + 1}
-                      </span>
-                      <span className="text-sm font-medium text-zinc-800 truncate max-w-[160px]">
-                        {item.name}
-                      </span>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className="text-sm font-bold text-zinc-700">
-                        {item.times_ordered}×
-                      </span>
-                      <p className="text-[10px] text-zinc-400">
-                        {(item.total_revenue / 1000).toFixed(0)}k FCFA
-                      </p>
-                    </div>
-                  </div>
-                  <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ delay: i * 0.05, duration: 0.5 }}
-                      className="h-full rounded-full"
-                      style={{
-                        backgroundColor: i === 0 ? "#f59e0b" : "#16a34a",
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          )}
+        </Card>
 
-        {/* Funnel conversion */}
-        <div className="bg-white rounded-2xl border border-zinc-100 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="font-bold text-zinc-900">Tunnel de conversion</p>
-              <p className="text-zinc-400 text-xs mt-0.5">
-                Vues → commandes par heure
-              </p>
-            </div>
-            <TrendingUp size={16} className="text-zinc-300" />
+        {/* Top items */}
+        <Card>
+          <div className="mb-4">
+            <p className="font-bold text-zinc-900">Top plats</p>
+            <p className="text-zinc-400 text-xs mt-0.5">
+              Par nombre de commandes · barre = part relative
+            </p>
           </div>
-          <div className="space-y-2.5">
-            {funnel
-              .slice(0, 8)
-              .filter((h) => h.views > 0)
-              .map((h) => {
-                const rate = parseFloat(h.conversion_rate);
-                return (
-                  <div key={h.hour} className="flex items-center gap-3">
-                    <span className="text-xs text-zinc-400 font-mono w-10 flex-shrink-0">
-                      {h.label}
-                    </span>
-                    <div className="flex-1 flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-zinc-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(100, rate * 3)}%`,
-                            backgroundColor:
-                              rate >= 20
-                                ? "#16a34a"
-                                : rate >= 10
-                                  ? "#f59e0b"
-                                  : "#e5e7eb",
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs text-zinc-500 font-medium w-10 text-right flex-shrink-0">
-                        {h.conversion_rate}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            {funnel.filter((h) => h.views > 0).length === 0 && (
-              <p className="text-zinc-400 text-sm">
-                Pas encore de données de conversion
-              </p>
-            )}
-          </div>
-        </div>
+          {loading ? (
+            <Skeleton className="h-40" />
+          ) : topItems.length > 0 ? (
+            <HorizontalBars
+              data={topItems.map((item, i) => ({
+                label: item.name,
+                value: item.times_ordered,
+                sub: `${(item.total_revenue / 1000).toFixed(0)}k FCFA`,
+                color: i === 0 ? "#f59e0b" : brand,
+              }))}
+              color={brand}
+            />
+          ) : (
+            <p className="text-zinc-400 text-sm">Aucune commande enregistrée</p>
+          )}
+        </Card>
       </div>
 
-      {/* Profil score détail */}
+      {/* Profile score détail */}
       {score && score.missing?.length > 0 && (
-        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Award size={18} className="text-amber-600" />
-            </div>
+        <Card>
+          <div className="flex items-start gap-6">
+            <RadialProgress
+              value={score.score}
+              size={96}
+              color={scoreColor}
+              label="Complétude"
+            />
             <div className="flex-1">
-              <p className="font-bold text-zinc-900">
-                Améliorez votre score de complétude
+              <p className="font-bold text-zinc-900 mb-0.5">
+                Améliorez votre profil
               </p>
-              <p className="text-zinc-600 text-sm mt-0.5 mb-4">
-                Score actuel :{" "}
-                <strong className="text-amber-700">{score.score}%</strong> · Un
-                profil complet = plus de conversions
+              <p className="text-zinc-500 text-sm mb-4">
+                Un profil complet augmente votre taux de conversion de{" "}
+                <strong>+35%</strong>.
               </p>
               <div className="flex flex-wrap gap-2">
                 {score.missing.map((m: string) => {
                   const LABELS: Record<string, string> = {
-                    logo: "🖼️ Ajouter un logo",
-                    slogan: "✍️ Ajouter un slogan",
-                    contact: "📱 Configurer WhatsApp",
-                    social: "📲 Réseaux sociaux",
-                    opening_hours: "🕐 Horaires d'ouverture",
-                    hero_media: "🎬 Photo/vidéo hero",
-                    gallery: "📸 Galerie (3+ photos)",
-                    menu: "🍽️ Menu (5+ plats)",
-                    faq: "❓ FAQ (2+ questions)",
-                    testimonials: "⭐ Témoignages",
+                    logo: "🖼️ Logo",
+                    slogan: "✍️ Slogan",
+                    contact: "📱 WhatsApp",
+                    social: "📲 Réseaux",
+                    opening_hours: "🕐 Horaires",
+                    hero_media: "🎬 Hero photo",
+                    gallery: "📸 Galerie",
+                    menu: "🍽️ Menu",
+                    faq: "❓ FAQ",
+                    testimonials: "⭐ Avis",
                   };
                   return (
                     <span
                       key={m}
-                      className="text-xs px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-full font-medium"
+                      className="text-xs px-3 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-full font-medium hover:border-zinc-300 transition-colors cursor-default"
                     >
                       {LABELS[m] || m}
                     </span>
@@ -366,7 +350,7 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

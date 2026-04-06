@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -10,6 +9,7 @@ import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -20,9 +20,16 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
-      const { access_token, user } = await authApi.login(email, password);
-      setAuth(user, access_token);
+      const { access_token, refresh_token, user } = await authApi.login(
+        email,
+        password,
+      );
+
+      setAuth(user, access_token, refresh_token);
+
+      // Redirection selon le rôle
       router.push(user.role === "SUPER_ADMIN" ? "/super-admin" : "/dashboard");
     } catch (err: any) {
       setError(err.message || "Identifiants incorrects");
@@ -44,7 +51,6 @@ export default function LoginPage() {
         />
         {/* Green glow */}
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-emerald-500 opacity-[0.06] rounded-full blur-[100px] pointer-events-none" />
-
         <div className="relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
@@ -55,7 +61,6 @@ export default function LoginPage() {
             </span>
           </div>
         </div>
-
         <div className="relative z-10 space-y-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-6">
@@ -74,7 +79,6 @@ export default function LoginPage() {
               un seul tableau de bord.
             </p>
           </div>
-
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             {[
@@ -92,7 +96,6 @@ export default function LoginPage() {
             ))}
           </div>
         </div>
-
         <div className="relative z-10">
           <p className="text-zinc-700 text-xs">
             © {new Date().getFullYear()} Zero To One — Cotonou, Bénin
