@@ -31,7 +31,7 @@ export default async function RestaurantLayout({
             {error instanceof Error ? error.message : String(error)}
           </p>
           <Link href="/" className="text-blue-600 hover:underline">
-            Retour à l`&apos`accueil
+            Retour à l&apos;accueil
           </Link>
         </div>
       </div>

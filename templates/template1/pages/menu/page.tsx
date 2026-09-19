@@ -16,14 +16,6 @@ export default async function MenuPageTemplate({
 }: MenuPageProps) {
   const config = preloadedConfig ?? loadRestaurantConfig(slug);
 
-  console.log("Menu hero background:", config.appearance.menu_hero_background);
-  console.log("Fallback hero background:", config.appearance.hero_background);
-  console.log(
-    "Background choisi:",
-    config.appearance.menu_hero_background || config.appearance.hero_background,
-  );
-  console.log("Apparence complète:", config.appearance);
-
   const primary = config.appearance?.colors?.primary ?? "#2f81d3";
   const secondary = config.appearance?.colors?.secondary ?? "#FFC107";
 
@@ -61,6 +53,7 @@ export default async function MenuPageTemplate({
             currency={config.menu.currency}
             restaurantName={config.identity.name}
             whatsapp={config.contact.whatsapp}
+            slug={config.slug}
             primaryColor={primary}
             secondaryColor={secondary}
           />

@@ -137,6 +137,8 @@ export function DonutChart({
   centerLabel?: string;
   centerValue?: string;
 }) {
+  const [hovered, setHovered] = useState<number | null>(null);
+
   const total = data.reduce((s, d) => s + d.value, 0);
   if (!total)
     return (
@@ -154,7 +156,6 @@ export function DonutChart({
   const circum = 2 * Math.PI * r;
 
   let cumulative = 0;
-  const [hovered, setHovered] = useState<number | null>(null);
 
   const slices = data.map((d, i) => {
     const pct = d.value / total;

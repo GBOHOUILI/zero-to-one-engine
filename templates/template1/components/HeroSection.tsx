@@ -4,7 +4,9 @@ import { ChevronDown } from "lucide-react";
 interface HeroProps {
   identity: {
     name: string;
-    slogan: string;
+    slogan?: string;
+    logo?: string;
+    type?: string;
     title?: string;
     description?: string;
   };
@@ -89,9 +91,7 @@ export default function Hero({
           <p className="text-sm sm:text-base uppercase tracking-[0.3em] font-medium text-white/90 animate-fade-in">
             Bienvenue à
           </p>
-          <p>
-            {identity.title}
-          </p>
+          <p>{identity.title}</p>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white drop-shadow-2xl animate-fade-in-up">
             {identity.name.split(" ").map((word, index) => (

@@ -33,6 +33,7 @@ type Props = {
   currency: string;
   restaurantName: string;
   whatsapp: string;
+  slug: string;
   primaryColor?: string;
   secondaryColor?: string;
 };
@@ -42,6 +43,7 @@ export default function MenuCard({
   currency,
   restaurantName,
   whatsapp,
+  slug,
   primaryColor = "#2f81d3",
   secondaryColor = "#FFC107",
 }: Props) {
@@ -53,7 +55,7 @@ export default function MenuCard({
     `Bonjour ! Je souhaite commander ${quantity} × ${item.name} (${(item.price * quantity).toFixed(2)} ${currency}) chez ${restaurantName}`,
   );
 
-  const detailUrl = `/menu/${item.id}`;
+  const detailUrl = `/${slug}/menu/${item.id}`;
 
   return (
     <div

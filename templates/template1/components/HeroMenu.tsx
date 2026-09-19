@@ -23,7 +23,7 @@ export default function HeroMenu({
   const primary = primaryColor ?? "#2f81d3";
 
   // Fallback background
-  const fallbackBg = {
+  const fallbackBg: NonNullable<HeroMenuProps["background"]> = {
     type: "image",
     url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=2070&q=80&auto=format&fit=crop",
     alt: "Fond menu élégant",

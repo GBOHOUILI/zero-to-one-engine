@@ -3,8 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import type { RestaurantConfig } from "@/lib/types";
 
+type Testimonial = NonNullable<
+  NonNullable<RestaurantConfig["marketing"]>["testimonials"]
+>[number];
+
 interface TestimonialCarouselProps {
-  testimonials: NonNullable<RestaurantConfig["testimonials"]>;
+  testimonials: Testimonial[];
   primaryColor: string;
 }
 
@@ -17,7 +21,6 @@ export default function TestimonialCarousel({
 
   // Initialiser à 1 pour éviter l'erreur d'hydratation (serveur = client au premier rendu)
   const [visibleCount, setVisibleCount] = useState(1);
-  const [isMounted, setIsMounted] = useState(false);
 
   // Calculer le nombre de témoignages visibles selon la taille d'écran
   const getVisibleCount = () => {
@@ -29,7 +32,6 @@ export default function TestimonialCarousel({
 
   // Après le montage, calculer le bon nombre de colonnes
   useEffect(() => {
-    setIsMounted(true);
     setVisibleCount(getVisibleCount());
   }, []);
 
@@ -113,11 +115,6 @@ export default function TestimonialCarousel({
                     <p className="font-bold text-gray-900">
                       {testimonial.author}
                     </p>
-                    {testimonial.role && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {testimonial.role}
-                      </p>
-                    )}
                   </div>
 
                   {/* Étoiles de notation */}

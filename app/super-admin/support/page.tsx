@@ -25,15 +25,18 @@ const STATUS: Record<string, { label: string; icon: any; color: string }> = {
   RESOLVED: { label: "Résolu", icon: CheckCircle2, color: "#22c55e" },
 };
 
-function Card({
+function SupportCard({
   children,
   className = "",
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
     <div
+      style={style}
       className={`bg-[#0d1a12] border border-emerald-900/40 rounded-2xl ${className}`}
     >
       {children}
@@ -119,7 +122,7 @@ export default function SupportPage() {
         className={`grid gap-5 ${selected ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}
       >
         {/* Ticket list */}
-        <Card className="overflow-hidden">
+        <SupportCard className="overflow-hidden">
           <div className="px-5 py-4 border-b border-emerald-900/30">
             <p className="text-white font-bold">Tickets ({tickets.length})</p>
           </div>
@@ -190,7 +193,7 @@ export default function SupportPage() {
               })
             )}
           </div>
-        </Card>
+        </SupportCard>
 
         {/* Thread */}
         <AnimatePresence>
@@ -200,7 +203,10 @@ export default function SupportPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
             >
-              <Card className="flex flex-col" style={{ height: "600px" }}>
+              <SupportCard
+                className="flex flex-col"
+                style={{ height: "600px" }}
+              >
                 {/* Thread header */}
                 <div className="flex items-start gap-3 px-5 py-4 border-b border-emerald-900/30">
                   <div className="flex-1 min-w-0">
@@ -280,7 +286,7 @@ export default function SupportPage() {
                     </button>
                   </div>
                 </div>
-              </Card>
+              </SupportCard>
             </motion.div>
           )}
         </AnimatePresence>

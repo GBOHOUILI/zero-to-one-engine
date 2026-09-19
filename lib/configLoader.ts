@@ -2,7 +2,22 @@ import fs from "fs";
 import path from "path";
 import { RestaurantConfig } from "./types";
 
+// Un slug valide ne contient que des minuscules, chiffres et tirets.
+// Rejeter tout le reste AVANT de toucher au système de fichiers empêche
+// toute tentative de path traversal (ex: "..", "/", caractères encodés)
+// de construire un chemin en dehors de data/restaurants.
+const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+// Même principe pour le nom de template, qui vient des données du
+// restaurant (moins exposé que le slug, mais on ne fait pas confiance
+// à une valeur qui finit dans un path.join).
+const TEMPLATE_NAME_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export function loadRestaurantConfig(slug: string): RestaurantConfig {
+  if (!SLUG_PATTERN.test(slug)) {
+    throw new Error(`Restaurant "${slug}" non trouvé`);
+  }
+
   const filePath = path.join(
     process.cwd(),
     "data",
@@ -26,6 +41,11 @@ export function loadRestaurantConfig(slug: string): RestaurantConfig {
   // Validation champs obligatoires (minimaliste mais stricte)
   if (!rawConfig.id) throw new Error("Champ obligatoire manquant : id");
   if (!rawConfig.slug) throw new Error("Champ obligatoire manquant : slug");
+  if (rawConfig.slug !== slug) {
+    throw new Error(
+      `Incohérence de données : le fichier "${slug}.json" déclare le slug "${rawConfig.slug}"`,
+    );
+  }
   if (!rawConfig.identity?.name)
     throw new Error("Nom du restaurant manquant (identity.name)");
   if (!rawConfig.contact?.whatsapp)
@@ -105,6 +125,11 @@ export function loadRestaurantConfig(slug: string): RestaurantConfig {
   };
 
   // Vérification finale du template
+  if (!TEMPLATE_NAME_PATTERN.test(config.appearance.template)) {
+    throw new Error(
+      `Nom de template invalide : "${config.appearance.template}"`,
+    );
+  }
   const templatePath = path.join(
     process.cwd(),
     "templates",

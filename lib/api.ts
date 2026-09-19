@@ -1,4 +1,5 @@
 import { useAuthStore } from "./auth-store";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 
 function getToken(): string | null {
@@ -13,6 +14,15 @@ function cleanParams(params: Record<string, any>) {
     ),
   );
 }
+
+// Endpoints publics : un 401 ici est une réponse métier normale
+// (mauvais identifiants, token de reset invalide...), pas une session
+// expirée. Ils ne doivent jamais déclencher le mécanisme de refresh/logout.
+const PUBLIC_AUTH_PATHS = [
+  "/auth/login",
+  "/auth/refresh",
+  "/auth/forgot-password",
+];
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -43,8 +53,8 @@ async function apiFetch<T>(
 
   let res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
-  // Si 401 → tentative de refresh
-  if (res.status === 401) {
+  // Si 401 → tentative de refresh (jamais pour les endpoints publics)
+  if (res.status === 401 && !PUBLIC_AUTH_PATHS.includes(path)) {
     const refreshToken = localStorage.getItem("zto_refresh_token");
 
     if (!refreshToken) {

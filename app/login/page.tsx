@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
@@ -175,12 +176,12 @@ export default function LoginPage() {
             </div>
 
             <div className="flex justify-end">
-              <a
+              <Link
                 href="/forgot-password"
                 className="text-emerald-500 hover:text-emerald-400 text-xs transition-colors"
               >
                 Mot de passe oublié ?
-              </a>
+              </Link>
             </div>
 
             <button

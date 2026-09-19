@@ -32,7 +32,10 @@ export default function Template1Layout({ config, children }: TemplateProps) {
 
       <Footer
         identity={config.identity}
+        contact={config.contact}
+        business={config.business}
         marketing={config.marketing ?? { newsletter: false, social_links: {} }}
+        slug={config.slug}
       />
     </div>
   );

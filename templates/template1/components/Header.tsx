@@ -3,7 +3,12 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 
 interface HeaderProps {
-  identity: { name: string; logo?: string; title?: string; description?: string };
+  identity: {
+    name: string;
+    logo?: string;
+    title?: string;
+    description?: string;
+  };
   contact: { whatsapp: string };
   colors?: {
     primary?: string;
@@ -14,10 +19,9 @@ interface HeaderProps {
 
 const navLinks = [
   { href: "/", label: "Accueil" },
-  { href: "/story", label: "Notre Histoire" },
+  { href: "/about", label: "À propos" },
   { href: "/menu", label: "Menu" },
   { href: "/gallery", label: "Galerie" },
-  { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ];
 

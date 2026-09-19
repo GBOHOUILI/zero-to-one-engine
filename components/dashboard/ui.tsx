@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Loader2, Check, X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,10 +43,12 @@ export function Card({
   children,
   className = "",
   onClick,
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }) {
   const dark =
     typeof window !== "undefined" &&
@@ -54,6 +56,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
+      style={style}
       className={cn(
         "rounded-2xl border transition-all duration-200",
         dark
@@ -363,11 +366,18 @@ export function ToastProvider() {
   const [toasts, setToasts] = useState<
     { id: number; msg: string; type: "ok" | "err" }[]
   >([]);
-  toastFn = (msg, type = "ok") => {
-    const id = Date.now();
-    setToasts((p) => [...p, { id, msg, type }]);
-    setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3000);
-  };
+
+  useEffect(() => {
+    toastFn = (msg, type = "ok") => {
+      const id = Date.now();
+      setToasts((p) => [...p, { id, msg, type }]);
+      setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3000);
+    };
+    return () => {
+      toastFn = null;
+    };
+  }, []);
+
   return (
     <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
       {toasts.map((t) => (
