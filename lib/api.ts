@@ -1,3 +1,4 @@
+import { useAuthStore } from "./auth-store";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 
 function getToken(): string | null {
@@ -362,4 +363,92 @@ export const superAdminRestaurantApi = {
     apiFetch<any>(
       `/super-admin/analytics/restaurant/${restaurantId}/dashboard`,
     ),
+};
+
+// ─── TEAM ─────────────────────────────────────────────────────────────────────
+
+export const teamApi = {
+  getAll: () => apiFetch<any[]>("/resto-admin/team"),
+  create: (d: any) =>
+    apiFetch("/resto-admin/team", { method: "POST", body: JSON.stringify(d) }),
+  update: (id: string, d: any) =>
+    apiFetch(`/resto-admin/team/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(d),
+    }),
+  remove: (id: string) =>
+    apiFetch(`/resto-admin/team/${id}`, { method: "DELETE" }),
+};
+
+// ─── PAGE CONFIG ──────────────────────────────────────────────────────────────
+
+export const pageConfigApi = {
+  getAll: () => apiFetch<any[]>("/resto-admin/page-config"),
+  getOne: (slug: string) => apiFetch<any>(`/resto-admin/page-config/${slug}`),
+  update: (slug: string, d: any) =>
+    apiFetch(`/resto-admin/page-config/${slug}`, {
+      method: "PATCH",
+      body: JSON.stringify(d),
+    }),
+  uploadHeroMedia: (slug: string, fd: FormData) =>
+    apiFetch(`/resto-admin/page-config/${slug}/hero-media`, {
+      method: "POST",
+      body: fd,
+    }),
+  removeHeroMedia: (slug: string) =>
+    apiFetch(`/resto-admin/page-config/${slug}/hero-media`, {
+      method: "DELETE",
+    }),
+  remove: (slug: string) =>
+    apiFetch(`/resto-admin/page-config/${slug}`, { method: "DELETE" }),
+};
+
+// ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
+
+export const testimonialsApi = {
+  getAll: (restaurantId: string) =>
+    apiFetch<any[]>(`/testimonials/${restaurantId}`),
+  toggleVisibility: (id: string, visible: boolean) =>
+    apiFetch(`/resto-admin/testimonials/${id}/visibility`, {
+      method: "PATCH",
+      body: JSON.stringify({ visible }),
+    }),
+  remove: (id: string) =>
+    apiFetch(`/resto-admin/testimonials/${id}`, { method: "DELETE" }),
+};
+
+// ─── SUPER ADMIN — restaurant detail tabs ─────────────────────────────────────
+
+export const saRestaurantDetailApi = {
+  // Menus
+  getCategories: (rid: string) =>
+    apiFetch<any[]>(`/super-admin/restaurants/${rid}/menus/categories`),
+  // Business info
+  getBusinessInfo: (rid: string) =>
+    apiFetch<any>(`/super-admin/restaurants/${rid}/business-info`),
+  updateBusinessInfo: (rid: string, d: any) =>
+    apiFetch(`/super-admin/restaurants/${rid}/business-info`, {
+      method: "PATCH",
+      body: JSON.stringify(d),
+    }),
+  // Page config
+  getPageConfigs: (rid: string) =>
+    apiFetch<any[]>(`/super-admin/restaurants/${rid}/page-config`),
+  // Team
+  getTeam: (rid: string) =>
+    apiFetch<any[]>(`/super-admin/restaurants/${rid}/team`),
+  // Testimonials
+  getTestimonials: (rid: string) =>
+    apiFetch<any[]>(`/super-admin/restaurants/${rid}/testimonials`),
+  // Subscriptions assign
+  assignSubscription: (d: {
+    restaurantId: string;
+    planId: string;
+    status?: string;
+  }) =>
+    apiFetch("/super-admin/subscriptions/assign", {
+      method: "POST",
+      body: JSON.stringify(d),
+    }),
+  getPlans: () => apiFetch<any[]>("/plans"),
 };
