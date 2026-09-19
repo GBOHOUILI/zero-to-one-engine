@@ -5,6 +5,8 @@
   "identity": {
     "name": "Pizza Roma",
     "slogan": "La vraie saveur italienne",
+    "title": "Des pizzas authentiques à chaque bouchée",
+    "description": "Retrouvez nos recettes traditionnelles, cuites au feu de bois et préparées avec des ingrédients frais du jour.",
     "logo": "https://images.unsplash.com/photo-1620288627223-53302f4e8c74?w=200&auto=format&fit=crop",
     "type": "restaurant-italien"
   },

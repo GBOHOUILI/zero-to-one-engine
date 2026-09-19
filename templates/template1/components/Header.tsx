@@ -3,7 +3,12 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 
 interface HeaderProps {
-  identity: { name: string; logo?: string };
+  identity: {
+    name: string;
+    logo?: string;
+    title?: string;
+    description?: string;
+  };
   contact: { whatsapp: string };
   colors?: {
     primary?: string;
@@ -14,10 +19,9 @@ interface HeaderProps {
 
 const navLinks = [
   { href: "/", label: "Accueil" },
-  { href: "/story", label: "Notre Histoire" },
+  { href: "/about", label: "À propos" },
   { href: "/menu", label: "Menu" },
   { href: "/gallery", label: "Galerie" },
-  { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -55,24 +59,24 @@ export default function Header({
         ${
           isScrolled
             ? "backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-xl"
-            : "bg-transparent border-b border-transparent"
+            : "bg-white border-b border-transparent"
         }
       `}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo → Accueil du resto */}
-          <a href={`/${slug}`} className="flex items-center gap-3 z-20">
+          <a href={`/${slug}`} className="flex items-center gap-1 z-20">
             {identity.logo && (
               <img
                 src={identity.logo}
                 alt={identity.name}
-                className="h-9 sm:h-11 w-auto object-contain drop-shadow-md"
+                className="w-20 h-auto"
               />
             )}
             <span
               className={`
-                text-xl sm:text-2xl font-bold tracking-tight
+                text-xl sm:text-2xl text-red-800 font-bold tracking-tight
                 transition-colors duration-300
                 ${isScrolled ? `text-[${secondary}]` : "text-white drop-shadow-lg"}
               `}
@@ -93,7 +97,7 @@ export default function Header({
                     ${
                       isScrolled
                         ? `text-[${secondary}] hover:text-white`
-                        : "text-white hover:text-[#ffffff] drop-shadow-md"
+                        : "text-black hover:text-black/80 drop-shadow-md"
                     }
                   `}
                 >
@@ -109,18 +113,17 @@ export default function Header({
             target="_blank"
             rel="noopener noreferrer"
             className={`
-              hidden lg:inline-flex items-center px-6 py-2.5 rounded-full text-sm font-semibold
+              hidden lg:inline-flex items-center px-8 py-3 rounded-full text-md font-semibold
               transition-all duration-300 hover:scale-105 active:scale-95 shadow-md
               ${
                 isScrolled
                   ? `bg-[${secondary}] text-[${primary}] hover:brightness-110 hover:shadow-lg`
-                  : "bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30"
+                  : "bg-red-800 backdrop-blur-sm text-white hover:bg-red-800/80"
               }
             `}
           >
             Réserver
           </a>
-
           {/* Burger Mobile */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}

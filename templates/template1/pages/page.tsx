@@ -37,6 +37,9 @@ export default async function HomePageTemplate({
           slogan: config.identity.slogan,
           logo: config.identity.logo,
           type: config.identity.type,
+          // on transmet aussi les éventuels title/description présents dans la config
+          title: config.identity.title,
+          description: config.identity.description,
         }}
         contact={{ whatsapp: config.contact.whatsapp }}
         colors={colors}
@@ -74,7 +77,7 @@ export default async function HomePageTemplate({
 
               {/* Bouton "Voir plus" */}
               <Link
-                href="/menu"
+                href={`/${config.slug}/menu`}
                 className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white border-2 border-gray-300 rounded-full text-gray-800 font-medium hover:bg-gray-100 hover:border-gray-400 transition-all"
               >
                 Voir plus de plats
@@ -91,6 +94,7 @@ export default async function HomePageTemplate({
                   currency={config.menu.currency}
                   restaurantName={config.identity.name}
                   whatsapp={config.contact.whatsapp}
+                  slug={config.slug}
                   primaryColor={colors.primary}
                   secondaryColor={colors.secondary}
                 />
@@ -113,6 +117,7 @@ export default async function HomePageTemplate({
                   key={index}
                   promo={promo}
                   primaryColor={colors.primary}
+                  whatsapp={config.contact.whatsapp}
                 />
               ))}
             </div>

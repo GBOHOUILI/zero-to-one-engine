@@ -4,8 +4,10 @@
   "domain": "pizzaroma.bj",
   "identity": {
     "name": "Pizza Roma",
+    "title": "La Pizza Comme Vous l’Aimez",
+    "description": "Découvrez l'authentique saveur de l'Italie avec nos pizzas cuites au feu de bois, préparées avec des ingrédients frais et de qualité. Que vous soyez amateur de classiques comme la Margherita ou que vous préfériez des créations plus audacieuses, Pizza Roma a la pizza parfaite pour satisfaire toutes vos envies. Commandez dès maintenant et savourez un morceau d'Italie à chaque bouchée !",
     "slogan": "La vraie saveur italienne",
-    "logo": "https://images.unsplash.com/photo-1620288627223-53302f4e8c74?w=200&auto=format&fit=crop",
+    "logo": "/test-logo.png",
     "type": "restaurant-italien"
   },
   "contact": {

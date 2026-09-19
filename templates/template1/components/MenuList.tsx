@@ -37,6 +37,7 @@ type Props = {
   currency: string;
   restaurantName: string;
   whatsapp: string;
+  slug: string;
   primaryColor?: string;
   secondaryColor?: string;
 };
@@ -46,6 +47,7 @@ export default function MenuList({
   currency,
   restaurantName,
   whatsapp,
+  slug,
   primaryColor = "#2f81d3",
   secondaryColor = "#FFC107",
 }: Props) {
@@ -74,6 +76,7 @@ export default function MenuList({
                   currency={currency}
                   restaurantName={restaurantName}
                   whatsapp={whatsapp}
+                  slug={slug}
                   primaryColor={primaryColor}
                   secondaryColor={secondaryColor}
                 />

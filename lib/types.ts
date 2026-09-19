@@ -2,6 +2,10 @@
 interface Identity {
   name: string;
   slogan?: string;
+  /** titre optionnel affiché dans le hero, avant le nom */
+  title?: string;
+  /** description optionnelle affichée sous le nom dans le hero */
+  description?: string;
   logo?: string;
   type: "gastronomique" | "fast-food" | "café" | "bar" | "street-food"; // peut etre complété
 }

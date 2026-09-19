@@ -3,8 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import type { RestaurantConfig } from "@/lib/types";
 
+type Testimonial = NonNullable<
+  NonNullable<RestaurantConfig["marketing"]>["testimonials"]
+>[number];
+
 interface TestimonialCarouselProps {
-  testimonials: NonNullable<RestaurantConfig["testimonials"]>;
+  testimonials: Testimonial[];
   primaryColor: string;
 }
 
@@ -17,7 +21,6 @@ export default function TestimonialCarousel({
 
   // Initialiser à 1 pour éviter l'erreur d'hydratation (serveur = client au premier rendu)
   const [visibleCount, setVisibleCount] = useState(1);
-  const [isMounted, setIsMounted] = useState(false);
 
   // Calculer le nombre de témoignages visibles selon la taille d'écran
   const getVisibleCount = () => {
@@ -27,14 +30,13 @@ export default function TestimonialCarousel({
     return 1; // mobile: 1 carte
   };
 
-  // Après le montage, calculer le bon nombre de colonnes
+  // Calcule le bon nombre de colonnes après le montage (le state part de 1
+  // pour que le rendu serveur et le premier rendu client soient identiques,
+  // donc ce recalcul ne peut pas passer par un lazy initializer sans
+  // réintroduire le mismatch d'hydratation) et le tient à jour au resize.
   useEffect(() => {
-    setIsMounted(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleCount(getVisibleCount());
-  }, []);
-
-  // Mettre à jour le nombre visible au redimensionnement
-  useEffect(() => {
     const handleResize = () => setVisibleCount(getVisibleCount());
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -113,11 +115,6 @@ export default function TestimonialCarousel({
                     <p className="font-bold text-gray-900">
                       {testimonial.author}
                     </p>
-                    {testimonial.role && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {testimonial.role}
-                      </p>
-                    )}
                   </div>
 
                   {/* Étoiles de notation */}
