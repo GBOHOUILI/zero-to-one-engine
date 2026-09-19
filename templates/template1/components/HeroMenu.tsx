@@ -18,10 +18,7 @@ export default function HeroMenu({
   title = "Notre Carte",
   subtitle = "Découvrez nos saveurs authentiques",
   background,
-  primaryColor,
 }: HeroMenuProps) {
-  const primary = primaryColor ?? "#2f81d3";
-
   // Fallback background
   const fallbackBg: NonNullable<HeroMenuProps["background"]> = {
     type: "image",

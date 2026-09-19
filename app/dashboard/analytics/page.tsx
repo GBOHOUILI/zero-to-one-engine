@@ -2,6 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { analyticsApi } from "@/lib/api";
+import type {
+  AnalyticsDashboard,
+  ConversionFunnelStep,
+  PeakHour,
+  ProfileScore,
+  TopMenuItem,
+} from "@/lib/api-types";
 import {
   PeakHoursChart,
   AreaChart,
@@ -17,8 +24,8 @@ import {
   TrendingUp,
   Award,
   Clock,
-  Loader2,
   ArrowUpRight,
+  type LucideIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -28,7 +35,21 @@ function Skeleton({ className = "" }: { className?: string }) {
   );
 }
 
-function MetricCard({ label, value, icon: Icon, color, sub, delay = 0 }: any) {
+function MetricCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  sub,
+  delay = 0,
+}: {
+  label: string;
+  value: React.ReactNode;
+  icon: LucideIcon;
+  color: string;
+  sub?: React.ReactNode;
+  delay?: number;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -71,18 +92,20 @@ function Card({
 }
 
 export default function AnalyticsPage() {
-  const [dashboard, setDashboard] = useState<any>(null);
-  const [peakHours, setPeakHours] = useState<any[]>([]);
-  const [topItems, setTopItems] = useState<any[]>([]);
-  const [funnel, setFunnel] = useState<any[]>([]);
-  const [score, setScore] = useState<any>(null);
-  const [brand, setBrand] = useState("#16a34a");
+  const [dashboard, setDashboard] = useState<AnalyticsDashboard | null>(null);
+  const [peakHours, setPeakHours] = useState<PeakHour[]>([]);
+  const [topItems, setTopItems] = useState<TopMenuItem[]>([]);
+  const [funnel, setFunnel] = useState<ConversionFunnelStep[]>([]);
+  const [score, setScore] = useState<ProfileScore | null>(null);
+  const [brand] = useState(() => {
+    if (typeof document === "undefined") return "#16a34a";
+    return (
+      document.documentElement.style.getPropertyValue("--brand") || "#16a34a"
+    );
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const b = document.documentElement.style.getPropertyValue("--brand");
-    if (b) setBrand(b);
-
     Promise.allSettled([
       analyticsApi.getDashboard().then(setDashboard),
       analyticsApi.getPeakHours().then(setPeakHours),
@@ -93,8 +116,9 @@ export default function AnalyticsPage() {
   }, []);
 
   const summary = dashboard?.summary ?? {};
+  const scoreValue = score?.score ?? 0;
   const scoreColor =
-    score?.score >= 80 ? "#16a34a" : score?.score >= 50 ? "#f59e0b" : "#ef4444";
+    scoreValue >= 80 ? "#16a34a" : scoreValue >= 50 ? "#f59e0b" : "#ef4444";
   const peakHour = peakHours.reduce(
     (max, h) => (h.orders > max.orders ? h : max),
     { orders: 0, label: "—" },
@@ -200,8 +224,8 @@ export default function AnalyticsPage() {
               Pic de commandes à {peakHour.label}
             </p>
             <p className="text-zinc-600 text-sm mt-0.5">
-              Assurez-vous d'être disponible sur WhatsApp à cette heure pour
-              maximiser vos conversions.
+              Assurez-vous d&apos;être disponible sur WhatsApp à cette heure
+              pour maximiser vos conversions.
             </p>
           </div>
         </motion.div>
@@ -248,7 +272,7 @@ export default function AnalyticsPage() {
                 data={donutConv}
                 size={144}
                 thickness={24}
-                centerValue={summary.conversionRate ?? "0%"}
+                centerValue={String(summary.conversionRate ?? "0%")}
                 centerLabel="taux"
               />
             )}
@@ -307,7 +331,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Profile score détail */}
-      {score && score.missing?.length > 0 && (
+      {score && score.missing && score.missing.length > 0 && (
         <Card>
           <div className="flex items-start gap-6">
             <RadialProgress

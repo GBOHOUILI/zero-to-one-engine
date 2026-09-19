@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { ordersApi, analyticsApi, subscriptionApi } from "@/lib/api";
+import type {
+  AnalyticsDashboard,
+  OrderStats,
+  PeakHour,
+  ProfileScore,
+  Subscription,
+  TopMenuItem,
+} from "@/lib/api-types";
 import { useAuthStore } from "@/lib/auth-store";
 import {
   PeakHoursChart,
@@ -19,6 +27,7 @@ import {
   AlertCircle,
   ArrowRight,
   Zap,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -31,7 +40,23 @@ function Skeleton({ className = "" }: { className?: string }) {
 }
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({ label, value, icon: Icon, color, sub, trend, spark }: any) {
+function KpiCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  sub,
+  trend,
+  spark,
+}: {
+  label: string;
+  value: React.ReactNode;
+  icon: LucideIcon;
+  color: string;
+  sub?: React.ReactNode;
+  trend?: number;
+  spark?: number[];
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -105,20 +130,22 @@ function CardHeader({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardOverview() {
-  const { user } = useAuthStore();
-  const [orders, setOrders] = useState<any>(null);
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [profileScore, setProfileScore] = useState<any>(null);
-  const [peakHours, setPeakHours] = useState<any[]>([]);
-  const [topItems, setTopItems] = useState<any[]>([]);
-  const [subscription, setSubscription] = useState<any>(null);
-  const [brand, setBrand] = useState("#16a34a");
+  useAuthStore();
+  const [orders, setOrders] = useState<OrderStats | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsDashboard | null>(null);
+  const [profileScore, setProfileScore] = useState<ProfileScore | null>(null);
+  const [peakHours, setPeakHours] = useState<PeakHour[]>([]);
+  const [topItems, setTopItems] = useState<TopMenuItem[]>([]);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [brand] = useState(() => {
+    if (typeof document === "undefined") return "#16a34a";
+    return (
+      document.documentElement.style.getPropertyValue("--brand") || "#16a34a"
+    );
+  });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const stored = document.documentElement.style.getPropertyValue("--brand");
-    if (stored) setBrand(stored);
-
     Promise.allSettled([
       ordersApi.getStats().then(setOrders),
       analyticsApi.getDashboard().then(setAnalytics),
@@ -134,17 +161,17 @@ export default function DashboardOverview() {
   const donutData = [
     {
       label: "Confirmées",
-      value: byStatus.find((s: any) => s.status === "CONFIRMED")?.count ?? 0,
+      value: byStatus.find((s) => s.status === "CONFIRMED")?.count ?? 0,
       color: "#16a34a",
     },
     {
       label: "En attente",
-      value: byStatus.find((s: any) => s.status === "PENDING")?.count ?? 0,
+      value: byStatus.find((s) => s.status === "PENDING")?.count ?? 0,
       color: "#f59e0b",
     },
     {
       label: "Annulées",
-      value: byStatus.find((s: any) => s.status === "CANCELLED")?.count ?? 0,
+      value: byStatus.find((s) => s.status === "CANCELLED")?.count ?? 0,
       color: "#ef4444",
     },
   ].filter((d) => d.value > 0);
@@ -165,7 +192,7 @@ export default function DashboardOverview() {
           {greeting} 👋
         </h1>
         <p className="text-zinc-400 text-sm mt-0.5">
-          Vue d'ensemble de votre restaurant
+          Vue d&apos;ensemble de votre restaurant
         </p>
       </div>
 
@@ -178,7 +205,8 @@ export default function DashboardOverview() {
         >
           <AlertCircle size={18} />
           <span>
-            Votre abonnement a expiré. Votre menu n'est plus visible en ligne.
+            Votre abonnement a expiré. Votre menu n&apos;est plus visible en
+            ligne.
           </span>
           <Link
             href="/dashboard/settings"
@@ -320,7 +348,7 @@ export default function DashboardOverview() {
             />
           ) : (
             <p className="text-zinc-400 text-sm">
-              Aucune donnée pour l'instant
+              Aucune donnée pour l&apos;instant
             </p>
           )}
         </Card>
@@ -347,7 +375,7 @@ export default function DashboardOverview() {
                       ? "À améliorer"
                       : "Incomplet"}
                 </p>
-                {profileScore?.missing?.length > 0 && (
+                {profileScore?.missing && profileScore.missing.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {profileScore.missing.slice(0, 4).map((m: string) => (
                       <span
@@ -389,7 +417,7 @@ export default function DashboardOverview() {
                   Aucune commande
                 </p>
               ) : (
-                orders.recent_orders.slice(0, 3).map((order: any) => (
+                orders.recent_orders.slice(0, 3).map((order) => (
                   <div
                     key={order.id}
                     className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50/50 transition-colors"

@@ -3,20 +3,20 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ordersApi } from "@/lib/api";
+import type { OrderStats } from "@/lib/api-types";
 import {
   ShoppingBag,
-  TrendingUp,
   Clock,
   CheckCircle2,
   XCircle,
   Loader2,
-  ArrowUpRight,
   Package,
+  type LucideIcon,
 } from "lucide-react";
 
 const STATUS: Record<
   string,
-  { label: string; color: string; bg: string; icon: any }
+  { label: string; color: string; bg: string; icon: LucideIcon }
 > = {
   PENDING: {
     label: "En attente",
@@ -38,7 +38,17 @@ const STATUS: Record<
   },
 };
 
-function StatPill({ label, value, sub, color = "#6b7280" }: any) {
+function StatPill({
+  label,
+  value,
+  sub,
+  color = "#6b7280",
+}: {
+  label: string;
+  value: React.ReactNode;
+  sub?: string;
+  color?: string;
+}) {
   return (
     <div className="bg-white rounded-2xl p-5 border border-zinc-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
       <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-2">
@@ -53,7 +63,7 @@ function StatPill({ label, value, sub, color = "#6b7280" }: any) {
 }
 
 export default function OrdersPage() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<OrderStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,9 +82,8 @@ export default function OrdersPage() {
     );
 
   const byStatus = data?.by_status || [];
-  const confirmed =
-    byStatus.find((s: any) => s.status === "CONFIRMED")?.count || 0;
-  const pending = byStatus.find((s: any) => s.status === "PENDING")?.count || 0;
+  const confirmed = byStatus.find((s) => s.status === "CONFIRMED")?.count || 0;
+  const pending = byStatus.find((s) => s.status === "PENDING")?.count || 0;
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -120,8 +129,9 @@ export default function OrdersPage() {
               Comment fonctionne le tunnel de commande ?
             </p>
             <p className="text-zinc-600 text-sm mt-1 leading-relaxed">
-              Quand un client clique <strong>"Commander"</strong> sur votre
-              menu, une commande est créée automatiquement avec un ID unique{" "}
+              Quand un client clique <strong>&quot;Commander&quot;</strong> sur
+              votre menu, une commande est créée automatiquement avec un ID
+              unique{" "}
               <code className="text-xs bg-emerald-100 px-1.5 py-0.5 rounded font-mono">
                 #ZO-XXXXX
               </code>
@@ -146,16 +156,16 @@ export default function OrdersPage() {
               <ShoppingBag size={22} className="text-zinc-300" />
             </div>
             <p className="text-zinc-500 font-medium">
-              Aucune commande pour l'instant
+              Aucune commande pour l&apos;instant
             </p>
             <p className="text-zinc-400 text-sm mt-1">
-              Les commandes apparaîtront ici dès qu'un client commandera via
-              votre menu
+              Les commandes apparaîtront ici dès qu&apos;un client commandera
+              via votre menu
             </p>
           </div>
         ) : (
           <div className="divide-y divide-zinc-50">
-            {data.recent_orders.map((order: any, i: number) => {
+            {data.recent_orders.map((order, i) => {
               const sc = STATUS[order.status] || STATUS.PENDING;
               const StatusIcon = sc.icon;
               return (
@@ -210,13 +220,13 @@ export default function OrdersPage() {
       </div>
 
       {/* Items les plus commandés */}
-      {data?.recent_orders?.length > 0 && (
+      {data && data.recent_orders.length > 0 && (
         <div className="bg-white rounded-2xl border border-zinc-100 p-6">
           <p className="font-semibold text-zinc-900 mb-4">
             Détail de la dernière commande
           </p>
           <div className="space-y-2">
-            {data.recent_orders[0]?.items?.map((item: any) => (
+            {data.recent_orders[0]?.items?.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center gap-3 py-2 border-b border-zinc-50 last:border-0"

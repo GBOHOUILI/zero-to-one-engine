@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { superAdminApi } from "@/lib/api";
+import type {
+  PlatformStats,
+  RestaurantProfileScore,
+  TemplatePerformance,
+} from "@/lib/api-types";
 import {
   Store,
-  Users,
   TrendingUp,
   CreditCard,
   ShoppingBag,
@@ -13,6 +17,7 @@ import {
   Zap,
   Activity,
   Brain,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -21,13 +26,11 @@ function StatCard({
   value,
   icon: Icon,
   trend,
-  color = "#22c55e",
 }: {
   label: string;
   value: string | number;
-  icon: any;
+  icon: LucideIcon;
   trend?: string;
-  color?: string;
 }) {
   return (
     <div className="bg-[#0d1a12] border border-emerald-900/40 rounded-2xl p-6 hover:border-emerald-700/40 transition-all">
@@ -48,9 +51,9 @@ function StatCard({
 }
 
 export default function SuperAdminOverview() {
-  const [stats, setStats] = useState<any>(null);
-  const [scores, setScores] = useState<any[]>([]);
-  const [templatePerf, setTemplatePerf] = useState<any[]>([]);
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [scores, setScores] = useState<RestaurantProfileScore[]>([]);
+  const [templatePerf, setTemplatePerf] = useState<TemplatePerformance[]>([]);
 
   useEffect(() => {
     superAdminApi
@@ -232,7 +235,7 @@ export default function SuperAdminOverview() {
           </Link>
         </div>
         <div className="space-y-2">
-          {stats?.recentPayments?.map((p: any) => (
+          {stats?.recentPayments?.map((p) => (
             <div
               key={p.id}
               className="flex items-center gap-4 py-2.5 border-b border-emerald-900/30 last:border-0"

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { pageConfigApi } from "@/lib/api";
+import type { PageConfig } from "@/lib/api-types";
+import { getErrorMessage } from "@/lib/utils";
 import {
   PageHeader,
   Card,
-  Btn,
   Input,
   Textarea,
   Toggle,
@@ -14,20 +15,26 @@ import {
   toast,
   Sk,
 } from "@/components/dashboard/ui";
-import { FileImage, Image, Video, Trash2, Upload, Loader2 } from "lucide-react";
+import {
+  FileImage,
+  Image as ImageIcon,
+  Video,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 
 const PAGES = [
   { id: "home", label: "Accueil", icon: FileImage },
   { id: "menu", label: "Menu", icon: FileImage },
-  { id: "gallery", label: "Galerie", icon: Image },
+  { id: "gallery", label: "Galerie", icon: ImageIcon },
   { id: "about", label: "À propos", icon: FileImage },
   { id: "contact", label: "Contact", icon: FileImage },
 ];
 
 function PageEditor({ slug }: { slug: string }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Partial<PageConfig>>({});
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   async function load() {
@@ -40,7 +47,25 @@ function PageEditor({ slug }: { slug: string }) {
     setLoading(false);
   }
   useEffect(() => {
-    load();
+    let ignore = false;
+    // React's documented data-fetching pattern resets loading state
+    // synchronously before a dependency-driven fetch (react.dev/learn/you-might-not-need-an-effect#fetching-data).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    pageConfigApi
+      .getOne(slug)
+      .then((d) => {
+        if (!ignore) setData(d);
+      })
+      .catch(() => {
+        if (!ignore) setData({});
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, [slug]);
 
   async function save() {
@@ -55,8 +80,8 @@ function PageEditor({ slug }: { slug: string }) {
         hero_loop: data.hero_loop,
       });
       toast("Page sauvegardée");
-    } catch (e: any) {
-      toast(e.message, "err");
+    } catch (e: unknown) {
+      toast(getErrorMessage(e), "err");
     }
     setSaving(false);
   }
@@ -73,8 +98,8 @@ function PageEditor({ slug }: { slug: string }) {
       await pageConfigApi.uploadHeroMedia(slug, fd);
       toast("Média héro mis à jour");
       load();
-    } catch (e: any) {
-      toast(e.message, "err");
+    } catch (e: unknown) {
+      toast(getErrorMessage(e), "err");
     }
     setUploading(false);
   }
@@ -85,12 +110,14 @@ function PageEditor({ slug }: { slug: string }) {
       await pageConfigApi.removeHeroMedia(slug);
       toast("Supprimé");
       load();
-    } catch (e: any) {
-      toast(e.message, "err");
+    } catch (e: unknown) {
+      toast(getErrorMessage(e), "err");
     }
   }
 
-  const set = (k: string, v: any) => setData((p: any) => ({ ...p, [k]: v }));
+  function set<K extends keyof PageConfig>(k: K, v: PageConfig[K]) {
+    setData((p) => ({ ...p, [k]: v }));
+  }
 
   if (loading)
     return (
@@ -197,7 +224,7 @@ function PageEditor({ slug }: { slug: string }) {
               {uploading ? (
                 <Loader2 size={14} className="animate-spin" />
               ) : (
-                <Image size={14} />
+                <ImageIcon size={14} />
               )}
               Image
             </div>

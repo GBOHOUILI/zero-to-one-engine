@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { promotionsApi } from "@/lib/api";
+import type { Promotion } from "@/lib/api-types";
 import {
   Plus,
   Trash2,
   Edit2,
   Check,
-  X,
   Loader2,
   Tag,
   ToggleLeft,
@@ -16,13 +16,8 @@ import {
   Sparkles,
 } from "lucide-react";
 
-interface Promo {
-  id: string;
-  title: string;
-  description?: string;
-  active: boolean;
-  created_at: string;
-}
+type Promo = Promotion;
+type PromoFormValues = { title: string; description: string; active: boolean };
 
 function PromoForm({
   initial,
@@ -30,7 +25,7 @@ function PromoForm({
   onCancel,
 }: {
   initial?: Partial<Promo>;
-  onSave: (d: any) => void;
+  onSave: (d: PromoFormValues) => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = useState(initial?.title || "");
@@ -103,16 +98,28 @@ export default function PromotionsPage() {
     setLoading(false);
   }
   useEffect(() => {
-    load();
+    let ignore = false;
+    promotionsApi
+      .getAll()
+      .then((data) => {
+        if (!ignore) setPromos(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
-  async function create(d: any) {
+  async function create(d: PromoFormValues) {
     await promotionsApi.create(d).catch(() => {});
     setAdding(false);
     load();
   }
 
-  async function edit(id: string, d: any) {
+  async function edit(id: string, d: PromoFormValues) {
     await promotionsApi.update(id, d).catch(() => {});
     setEditing(null);
     load();
@@ -300,7 +307,7 @@ export default function PromotionsPage() {
             <Tag size={22} className="text-zinc-300" />
           </div>
           <p className="text-zinc-500 font-medium">
-            Aucune promotion pour l'instant
+            Aucune promotion pour l&apos;instant
           </p>
           <p className="text-zinc-400 text-sm mt-1">
             Créez une offre pour attirer de nouveaux clients

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 // ─── Couleurs utilitaires ─────────────────────────────────────────────────────
 
@@ -155,14 +155,14 @@ export function DonutChart({
   const cy = size / 2;
   const circum = 2 * Math.PI * r;
 
-  let cumulative = 0;
-
   const slices = data.map((d, i) => {
     const pct = d.value / total;
-    const offset = circum - cumulative * circum;
+    const cumulativeBefore = data
+      .slice(0, i)
+      .reduce((s, x) => s + x.value / total, 0);
+    const offset = circum - cumulativeBefore * circum;
     const dash = pct * circum;
     const gap = circum - dash;
-    cumulative += pct;
     return { ...d, offset, dash, gap, pct, i };
   });
 

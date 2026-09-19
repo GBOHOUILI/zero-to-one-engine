@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Check, X, ChevronDown } from "lucide-react";
+import { Loader2, Check, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 //  Helpers brand
@@ -410,7 +410,7 @@ export function EmptyState({
   sub,
   action,
 }: {
-  icon: any;
+  icon: LucideIcon;
   title: string;
   sub?: string;
   action?: React.ReactNode;
@@ -473,7 +473,7 @@ export function Tabs({
   active,
   onChange,
 }: {
-  tabs: { id: string; label: string; icon?: any }[];
+  tabs: { id: string; label: string; icon?: LucideIcon }[];
   active: string;
   onChange: (id: string) => void;
 }) {

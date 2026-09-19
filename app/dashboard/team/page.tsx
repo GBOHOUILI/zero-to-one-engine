@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { teamApi } from "@/lib/api";
+import type { TeamMember } from "@/lib/api-types";
+import { getErrorMessage } from "@/lib/utils";
 import {
   PageHeader,
   Card,
@@ -14,16 +16,9 @@ import {
   Sk,
   Badge,
 } from "@/components/dashboard/ui";
-import { Plus, Trash2, Edit2, Users, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit2, Users } from "lucide-react";
 
-interface Member {
-  id: string;
-  name: string;
-  role: string;
-  bio?: string;
-  image_url?: string;
-  position: number;
-}
+type Member = TeamMember;
 
 const blank = { name: "", role: "", bio: "", image_url: "", position: 0 };
 
@@ -42,7 +37,19 @@ export default function TeamPage() {
     setLoading(false);
   }
   useEffect(() => {
-    load();
+    let ignore = false;
+    teamApi
+      .getAll()
+      .then((data) => {
+        if (!ignore) setMembers(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   function openAdd() {
@@ -81,20 +88,22 @@ export default function TeamPage() {
       }
       setModal(false);
       load();
-    } catch (e: any) {
-      toast(e.message, "err");
+    } catch (e: unknown) {
+      toast(getErrorMessage(e), "err");
     }
     setSaving(false);
   }
 
   async function remove(id: string) {
     if (!confirm("Supprimer ce membre ?")) return;
-    await teamApi.remove(id).catch((e: any) => toast(e.message, "err"));
+    await teamApi
+      .remove(id)
+      .catch((e: unknown) => toast(getErrorMessage(e), "err"));
     setMembers((p) => p.filter((m) => m.id !== id));
     toast("Supprimé");
   }
 
-  const f = (k: keyof typeof blank, v: any) =>
+  const f = (k: keyof typeof blank, v: string | number) =>
     setForm((p) => ({ ...p, [k]: v }));
 
   return (

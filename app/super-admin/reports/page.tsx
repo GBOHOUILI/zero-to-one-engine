@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { superAdminApi } from "@/lib/api";
+import type { Report } from "@/lib/api-types";
 import {
   AlertTriangle,
   CheckCircle2,
   Clock,
   Loader2,
   RefreshCw,
+  type LucideIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const STATUS: Record<
   string,
-  { label: string; color: string; bg: string; icon: any }
+  { label: string; color: string; bg: string; icon: LucideIcon }
 > = {
   PENDING: {
     label: "En attente",
@@ -52,18 +54,32 @@ function Card({
 }
 
 export default function ReportsPage() {
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(() => {
     setLoading(true);
-    try {
-      setReports(await superAdminApi.getReports());
-    } catch {}
-    setLoading(false);
-  }
+    return superAdminApi
+      .getReports()
+      .then(setReports)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
-    load();
+    let ignore = false;
+    superAdminApi
+      .getReports()
+      .then((data) => {
+        if (!ignore) setReports(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   async function updateStatus(id: string, status: string) {
@@ -111,7 +127,7 @@ export default function ReportsPage() {
               className="text-emerald-900 mx-auto mb-2"
             />
             <p className="text-emerald-800 text-sm">
-              Aucun signalement pour l'instant
+              Aucun signalement pour l&apos;instant
             </p>
           </div>
         ) : (
@@ -131,7 +147,7 @@ export default function ReportsPage() {
                     className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                     style={{ backgroundColor: sc.bg }}
                   >
-                    <AlertTriangle size={15} style={{ color: sc.color }} />
+                    <Ic size={15} style={{ color: sc.color }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

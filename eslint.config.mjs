@@ -21,5 +21,13 @@ export default defineConfig([
     },
   },
 
+  {
+    // Tailwind v3 loads this file with require() (no "type": "module" in package.json).
+    files: ["tailwind.config.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);

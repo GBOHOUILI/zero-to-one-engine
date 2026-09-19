@@ -3,11 +3,15 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { superAdminApi, superAdminRestaurantApi } from "@/lib/api";
+import type {
+  AnalyticsDashboard,
+  MenuCategory,
+  Restaurant as RestaurantModel,
+} from "@/lib/api-types";
+import { getErrorMessage } from "@/lib/utils";
 import {
   Search,
   Plus,
-  CheckCircle2,
-  XCircle,
   Store,
   ExternalLink,
   Loader2,
@@ -24,8 +28,6 @@ import {
   Copy,
   Check,
   Globe,
-  Mail,
-  Phone,
   Calendar,
   Tag,
   Layers,
@@ -78,16 +80,16 @@ function RestaurantDrawer({
   onClose,
   onRefresh,
 }: {
-  restaurant: any;
+  restaurant: RestaurantModel;
   onClose: () => void;
   onRefresh: () => void;
 }) {
   const [tab, setTab] = useState<"infos" | "design" | "analytics" | "danger">(
     "infos",
   );
-  const [detail, setDetail] = useState<any>(null);
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [menuCategories, setMenuCategories] = useState<any[]>([]);
+  const [detail, setDetail] = useState<RestaurantModel | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsDashboard | null>(null);
+  const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(
@@ -120,20 +122,20 @@ function RestaurantDrawer({
     setTimeout(() => setMsg(null), 3500);
   };
 
-  // Charger les détails complets
+  // Charger les détails complets (identité + menu). Les analytics sont gérées
+  // par l'effet suivant, indexé sur l'onglet.
   useEffect(() => {
+    // Resets loading state before a dependency-driven fetch, per
+    // react.dev/learn/you-might-not-need-an-effect#fetching-data.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingDetail(true);
     Promise.all([
       superAdminRestaurantApi.getById(restaurant.id),
       superAdminRestaurantApi.getMenuCategories(restaurant.id).catch(() => []),
-      tab === "analytics"
-        ? superAdminRestaurantApi.getAnalytics(restaurant.id).catch(() => null)
-        : Promise.resolve(null),
     ])
-      .then(([det, cats, ana]) => {
+      .then(([det, cats]) => {
         setDetail(det);
         setMenuCategories(cats);
-        if (ana) setAnalytics(ana);
         setFormIdentity({
           name: det.name || "",
           type: det.type || "",
@@ -150,15 +152,22 @@ function RestaurantDrawer({
       .finally(() => setLoadingDetail(false));
   }, [restaurant.id]);
 
-  // Charger analytics quand on va sur cet onglet
+  // Charger/recharger les analytics à chaque fois qu'on affiche cet onglet,
+  // y compris si l'utilisateur bascule directement sur un autre restaurant
+  // (clic sur une autre ligne) pendant que l'onglet Stats est déjà ouvert.
   useEffect(() => {
-    if (tab === "analytics" && !analytics) {
-      superAdminRestaurantApi
-        .getAnalytics(restaurant.id)
-        .then(setAnalytics)
-        .catch(() => {});
-    }
-  }, [tab]);
+    if (tab !== "analytics") return;
+    let ignore = false;
+    superAdminRestaurantApi
+      .getAnalytics(restaurant.id)
+      .then((a) => {
+        if (!ignore) setAnalytics(a);
+      })
+      .catch(() => {});
+    return () => {
+      ignore = true;
+    };
+  }, [tab, restaurant.id]);
 
   const saveIdentity = async () => {
     setSaving(true);
@@ -166,8 +175,8 @@ function RestaurantDrawer({
       await superAdminRestaurantApi.updateIdentity(restaurant.id, formIdentity);
       showMsg("ok", "Identité mise à jour ✓");
       onRefresh();
-    } catch (e: any) {
-      showMsg("err", e.message || "Erreur");
+    } catch (e: unknown) {
+      showMsg("err", getErrorMessage(e));
     }
     setSaving(false);
   };
@@ -178,8 +187,8 @@ function RestaurantDrawer({
       await superAdminRestaurantApi.updateDesign(restaurant.id, formDesign);
       showMsg("ok", "Design mis à jour ✓");
       onRefresh();
-    } catch (e: any) {
-      showMsg("err", e.message || "Erreur");
+    } catch (e: unknown) {
+      showMsg("err", getErrorMessage(e));
     }
     setSaving(false);
   };
@@ -189,8 +198,8 @@ function RestaurantDrawer({
       await superAdminRestaurantApi.updateStatus(restaurant.id, status);
       showMsg("ok", `Statut changé → ${status}`);
       onRefresh();
-    } catch (e: any) {
-      showMsg("err", e.message || "Erreur");
+    } catch (e: unknown) {
+      showMsg("err", getErrorMessage(e));
     }
   };
 
@@ -199,8 +208,8 @@ function RestaurantDrawer({
     try {
       await superAdminRestaurantApi.resetAdminPassword(restaurant.id);
       showMsg("ok", "Email de reset envoyé ✓");
-    } catch (e: any) {
-      showMsg("err", e.message || "Erreur");
+    } catch (e: unknown) {
+      showMsg("err", getErrorMessage(e));
     }
     setResettingPwd(false);
   };
@@ -212,8 +221,8 @@ function RestaurantDrawer({
       await superAdminRestaurantApi.hardDelete(restaurant.id);
       onClose();
       onRefresh();
-    } catch (e: any) {
-      showMsg("err", e.message || "Erreur suppression");
+    } catch (e: unknown) {
+      showMsg("err", getErrorMessage(e, "Erreur suppression"));
       setDeleting(false);
     }
   };
@@ -478,25 +487,26 @@ function RestaurantDrawer({
                       </div>
                     </div>
                   ))}
-                  {detail?.custom_domains?.length > 0 && (
-                    <div>
-                      <p className="text-emerald-800 text-xs mb-1.5 flex items-center gap-1">
-                        <Globe size={11} /> Domaines personnalisés
-                      </p>
-                      {detail.custom_domains.map((d: any) => (
-                        <div key={d.id} className="flex items-center gap-1.5">
-                          <span className="font-mono text-xs text-emerald-600">
-                            {d.hostname}
-                          </span>
-                          {d.isPrimary && (
-                            <span className="text-xs text-emerald-700 bg-emerald-900/30 px-1.5 rounded">
-                              primaire
+                  {detail?.custom_domains &&
+                    detail.custom_domains.length > 0 && (
+                      <div>
+                        <p className="text-emerald-800 text-xs mb-1.5 flex items-center gap-1">
+                          <Globe size={11} /> Domaines personnalisés
+                        </p>
+                        {detail.custom_domains.map((d) => (
+                          <div key={d.id} className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs text-emerald-600">
+                              {d.hostname}
                             </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                            {d.isPrimary && (
+                              <span className="text-xs text-emerald-700 bg-emerald-900/30 px-1.5 rounded">
+                                primaire
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
 
@@ -508,7 +518,7 @@ function RestaurantDrawer({
                     {menuCategories.length > 1 ? "s" : ""}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {menuCategories.map((cat: any) => (
+                    {menuCategories.map((cat) => (
                       <span
                         key={cat.id}
                         className="px-2.5 py-1 bg-emerald-900/20 text-emerald-600 text-xs rounded-lg border border-emerald-900/30"
@@ -537,7 +547,7 @@ function RestaurantDrawer({
                   ) : (
                     <KeyRound size={14} />
                   )}
-                  Envoyer un email de reset mot de passe à l'admin
+                  Envoyer un email de reset mot de passe à l&apos;admin
                 </button>
               </div>
             </div>
@@ -754,7 +764,7 @@ function RestaurantDrawer({
                     Suspendre le restaurant
                   </p>
                   <p className="text-emerald-700 text-xs mb-3">
-                    Le site devient inaccessible, l'admin ne peut plus se
+                    Le site devient inaccessible, l&apos;admin ne peut plus se
                     connecter.
                   </p>
                   <button
@@ -787,8 +797,8 @@ function RestaurantDrawer({
                   Supprimer définitivement
                 </p>
                 <p className="text-red-500/60 text-xs">
-                  Supprime le restaurant, l'admin, toutes les données (menus,
-                  commandes, analytics…). Cette action est{" "}
+                  Supprime le restaurant, l&apos;admin, toutes les données
+                  (menus, commandes, analytics…). Cette action est{" "}
                   <strong className="text-red-400">irréversible</strong>.
                 </p>
                 <p className="text-red-500/70 text-xs">
@@ -827,13 +837,16 @@ function RestaurantDrawer({
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function SuperAdminRestaurants() {
-  const [restaurants, setRestaurants] = useState<any[]>([]);
-  const [meta, setMeta] = useState<any>(null);
+  const [restaurants, setRestaurants] = useState<RestaurantModel[]>([]);
+  const [meta, setMeta] = useState<{
+    total: number;
+    lastPage?: number;
+  } | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"" | Status>("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<RestaurantModel | null>(null);
 
   // Form create
   const [showCreate, setShowCreate] = useState(false);
@@ -857,15 +870,38 @@ export default function SuperAdminRestaurants() {
         page,
         limit: 10,
       });
-      setRestaurants(data.items ?? data);
+      setRestaurants(data.items);
       setMeta(data.meta);
     } catch {}
     setLoading(false);
   }, [search, statusFilter, page]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let ignore = false;
+    // Resets loading state before a dependency-driven fetch, per
+    // react.dev/learn/you-might-not-need-an-effect#fetching-data.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    superAdminApi
+      .getRestaurants({
+        search,
+        status: statusFilter || undefined,
+        page,
+        limit: 10,
+      })
+      .then((data) => {
+        if (ignore) return;
+        setRestaurants(data.items);
+        setMeta(data.meta);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [search, statusFilter, page]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -883,8 +919,8 @@ export default function SuperAdminRestaurants() {
         currency: "XOF",
       });
       load();
-    } catch (err: any) {
-      setCreateError(err.message);
+    } catch (err: unknown) {
+      setCreateError(getErrorMessage(err));
     }
     setCreating(false);
   }
@@ -929,7 +965,7 @@ export default function SuperAdminRestaurants() {
         <select
           value={statusFilter}
           onChange={(e) => {
-            setStatusFilter(e.target.value as any);
+            setStatusFilter(e.target.value as "" | Status);
             setPage(1);
           }}
           className="bg-[#0d1a12] border border-emerald-900/40 text-emerald-600 rounded-xl px-3 py-3 text-sm focus:outline-none"
@@ -1032,7 +1068,9 @@ export default function SuperAdminRestaurants() {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-emerald-700 text-xs">
-                      {new Date(r.created_at).toLocaleDateString("fr-FR")}
+                      {r.created_at
+                        ? new Date(r.created_at).toLocaleDateString("fr-FR")
+                        : "—"}
                     </td>
                     <td className="px-5 py-4 text-right">
                       <a
@@ -1052,10 +1090,10 @@ export default function SuperAdminRestaurants() {
         </table>
 
         {/* Pagination */}
-        {meta && meta.lastPage > 1 && (
+        {meta && (meta.lastPage ?? 1) > 1 && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-emerald-900/30">
             <p className="text-emerald-800 text-xs">
-              Page {page} sur {meta.lastPage} · {meta.total} résultats
+              Page {page} sur {meta.lastPage ?? 1} · {meta.total} résultats
             </p>
             <div className="flex gap-2">
               <button
@@ -1066,7 +1104,9 @@ export default function SuperAdminRestaurants() {
                 <ChevronLeft size={16} />
               </button>
               <button
-                onClick={() => setPage((p) => Math.min(meta.lastPage, p + 1))}
+                onClick={() =>
+                  setPage((p) => Math.min(meta.lastPage ?? 1, p + 1))
+                }
                 disabled={page === meta.lastPage}
                 className="p-1.5 text-emerald-700 hover:text-emerald-400 disabled:opacity-30 transition-colors"
               >
@@ -1102,26 +1142,28 @@ export default function SuperAdminRestaurants() {
               </div>
             )}
             <form onSubmit={handleCreate} className="space-y-4">
-              {[
-                {
-                  field: "adminEmail",
-                  label: "Email de l'admin",
-                  type: "email",
-                  placeholder: "admin@restaurant.bj",
-                },
-                {
-                  field: "name",
-                  label: "Nom du restaurant",
-                  type: "text",
-                  placeholder: "Le Bon Goût",
-                },
-                {
-                  field: "type",
-                  label: "Type (optionnel)",
-                  type: "text",
-                  placeholder: "Africain, Fast-food…",
-                },
-              ].map(({ field, label, type, placeholder }) => (
+              {(
+                [
+                  {
+                    field: "adminEmail",
+                    label: "Email de l'admin",
+                    type: "email",
+                    placeholder: "admin@restaurant.bj",
+                  },
+                  {
+                    field: "name",
+                    label: "Nom du restaurant",
+                    type: "text",
+                    placeholder: "Le Bon Goût",
+                  },
+                  {
+                    field: "type",
+                    label: "Type (optionnel)",
+                    type: "text",
+                    placeholder: "Africain, Fast-food…",
+                  },
+                ] as const
+              ).map(({ field, label, type, placeholder }) => (
                 <div key={field}>
                   <label className="block text-emerald-700 text-xs font-medium mb-1.5 uppercase tracking-wider">
                     {label}
@@ -1130,7 +1172,7 @@ export default function SuperAdminRestaurants() {
                     type={type}
                     required={field !== "type"}
                     placeholder={placeholder}
-                    value={(form as any)[field]}
+                    value={form[field]}
                     onChange={(e) =>
                       setForm({ ...form, [field]: e.target.value })
                     }

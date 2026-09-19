@@ -21,8 +21,6 @@ import {
   Clock,
   Zap,
   Gift,
-  Users,
-  Award,
 } from "lucide-react";
 
 /* ─── Données statiques ──────────────────────────────────── */
@@ -533,7 +531,7 @@ export default function LandingClient() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full mb-6 zto-reveal">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full zto-blink" />
                 <span className="text-emerald-700 text-xs font-semibold tracking-wider uppercase">
-                  Lancement Afrique de l'Ouest
+                  Lancement Afrique de l&apos;Ouest
                 </span>
               </div>
 
@@ -750,7 +748,7 @@ export default function LandingClient() {
             </h2>
             <p className="text-slate-500 max-w-lg mx-auto">
               Une plateforme complète pensée pour les restaurateurs africains.
-              Pas d'outils bricolés — une solution qui génère des revenus.
+              Pas d&apos;outils bricolés — une solution qui génère des revenus.
             </p>
           </div>
 
@@ -888,7 +886,7 @@ export default function LandingClient() {
                 </span>
               </div>
             </div>
-            {COMPARISON_ROWS.map((row, i) => (
+            {COMPARISON_ROWS.map((row) => (
               <div
                 key={row.label}
                 className={`grid grid-cols-3 border-b border-slate-100 last:border-0 ${row.highlight ? "bg-emerald-50/40" : ""}`}
@@ -945,8 +943,8 @@ export default function LandingClient() {
               <p className="text-emerald-800 leading-relaxed mb-8">
                 Nos restaurateurs Pro génèrent en moyenne 15 000 FCFA
                 supplémentaires par semaine grâce aux commandes WhatsApp et à
-                l'optimisation via les analytics. L'abonnement est rentabilisé
-                en moins de 7 jours.
+                l&apos;optimisation via les analytics. L&apos;abonnement est
+                rentabilisé en moins de 7 jours.
               </p>
               <div className="space-y-4">
                 {[
@@ -1045,13 +1043,13 @@ export default function LandingClient() {
                   </span>
                 </p>
                 <p className="text-slate-500 text-xs leading-relaxed">
-                  Pour tout restaurant qui s'inscrit durant la période de
+                  Pour tout restaurant qui s&apos;inscrit durant la période de
                   lancement, les {LAUNCH_MONTHS_FREE} premiers mois du plan Pro
                   sont{" "}
                   <strong className="text-slate-700">
                     entièrement gratuits
                   </strong>
-                  . 45 000 FCFA d'économies dès le départ. Places limitées.
+                  . 45 000 FCFA d&apos;économies dès le départ. Places limitées.
                 </p>
               </div>
               <div className="flex-shrink-0 bg-emerald-600 text-white rounded-xl px-4 py-2 text-center">
@@ -1190,7 +1188,7 @@ export default function LandingClient() {
                     ))}
                 </div>
                 <p className="text-slate-600 text-sm leading-relaxed mb-5 italic">
-                  "{t.text}"
+                  &quot;{t.text}&quot;
                 </p>
                 <div className="flex items-center gap-3">
                   <div
@@ -1236,7 +1234,7 @@ export default function LandingClient() {
 
         <div className="max-w-3xl mx-auto text-center relative zto-reveal">
           <span className="text-emerald-500 text-xs font-mono uppercase tracking-widest">
-            Démarrez aujourd'hui
+            Démarrez aujourd&apos;hui
           </span>
           <h2 className="text-4xl md:text-5xl font-black mt-4 mb-5 leading-tight text-white">
             Votre restaurant mérite
@@ -1304,7 +1302,7 @@ export default function LandingClient() {
               </a>
               <p className="text-emerald-900 text-sm leading-relaxed max-w-xs">
                 La plateforme SaaS qui donne à chaque restaurant une présence
-                digitale professionnelle — pensée pour l'Afrique.
+                digitale professionnelle — pensée pour l&apos;Afrique.
               </p>
               <div className="flex gap-4 mt-5">
                 <a
@@ -1371,7 +1369,7 @@ export default function LandingClient() {
               © {new Date().getFullYear()} Zero To One. Tous droits réservés.
             </p>
             <p className="text-emerald-900 text-xs">
-              Fait avec ❤️ pour les restaurateurs d'Afrique
+              Fait avec ❤️ pour les restaurateurs d&apos;Afrique
             </p>
           </div>
         </div>

@@ -1,4 +1,40 @@
 import { useAuthStore } from "./auth-store";
+import type {
+  AnalyticsDashboard,
+  AuthUser,
+  Backup,
+  BasketBenchmark,
+  ConversionFunnelStep,
+  CreateRestaurantPayload,
+  Faq,
+  GalleryImage,
+  ItemsPaginatedResult,
+  LoginResponse,
+  MenuCategory,
+  MenuItem,
+  OpeningHour,
+  Order,
+  OrderStats,
+  PageConfig,
+  PaginatedResult,
+  Payment,
+  PeakHour,
+  Plan,
+  PlatformStats,
+  ProductPerformance,
+  ProfileScore,
+  Promotion,
+  QueryParams,
+  Report,
+  Restaurant,
+  RestaurantProfileScore,
+  Subscription,
+  SupportTicket,
+  TeamMember,
+  TemplatePerformance,
+  Testimonial,
+  TopMenuItem,
+} from "./api-types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 
@@ -7,7 +43,7 @@ function getToken(): string | null {
   return localStorage.getItem("zto_token");
 }
 
-function cleanParams(params: Record<string, any>) {
+function cleanParams(params: QueryParams) {
   return Object.fromEntries(
     Object.entries(params).filter(
       ([, v]) => v !== undefined && v !== null && v !== "",
@@ -26,11 +62,11 @@ const PUBLIC_AUTH_PATHS = [
 
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (reason?: any) => void;
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any = null) => {
+const processQueue = (error: unknown = null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
     else prom.resolve();
@@ -121,14 +157,11 @@ async function apiFetch<T>(
 
 export const authApi = {
   login: (email: string, password: string) =>
-    apiFetch<{ access_token: string; refresh_token: string; user: any }>(
-      "/auth/login",
-      {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      },
-    ),
-  me: () => apiFetch<any>("/auth/me"),
+    apiFetch<LoginResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+  me: () => apiFetch<AuthUser>("/auth/me"),
   logout: () => apiFetch("/auth/logout", { method: "POST" }),
   forgotPassword: (email: string) =>
     apiFetch("/auth/forgot-password", {
@@ -138,28 +171,40 @@ export const authApi = {
 };
 
 export const restaurantApi = {
-  getMyInfo: () => apiFetch<any>("/resto-admin/my-restaurant"),
-  updateIdentity: (d: any) =>
+  getMyInfo: () => apiFetch<Restaurant>("/resto-admin/my-restaurant"),
+  updateIdentity: (d: Partial<Restaurant>) =>
     apiFetch("/resto-admin/my-restaurant/identity", {
       method: "PATCH",
       body: JSON.stringify(d),
     }),
-  updateContact: (d: any) =>
+  updateContact: (d: Partial<Restaurant["contacts"]>) =>
     apiFetch("/resto-admin/my-restaurant/contact", {
       method: "PATCH",
       body: JSON.stringify(d),
     }),
-  updateOpeningHours: (d: any[]) =>
+  updateOpeningHours: (d: OpeningHour[]) =>
     apiFetch("/resto-admin/my-restaurant/opening-hours", {
       method: "PUT",
       body: JSON.stringify(d),
     }),
-  updateSocialLinks: (d: any) =>
+  updateSocialLinks: (d: Partial<Restaurant["social_links"]>) =>
     apiFetch("/resto-admin/my-restaurant/social-links", {
       method: "PATCH",
       body: JSON.stringify(d),
     }),
-  updateDesign: (d: any) =>
+  updateDesign: (
+    d: Partial<
+      Pick<
+        Restaurant,
+        | "template"
+        | "primary_color"
+        | "secondary_color"
+        | "font_family"
+        | "show_images"
+        | "dark_mode"
+      >
+    >,
+  ) =>
     apiFetch("/resto-admin/my-restaurant/design", {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -167,13 +212,14 @@ export const restaurantApi = {
 };
 
 export const menusApi = {
-  getCategories: () => apiFetch<any[]>("/resto-admin/menus/categories"),
-  createCategory: (d: any) =>
+  getCategories: () =>
+    apiFetch<MenuCategory[]>("/resto-admin/menus/categories"),
+  createCategory: (d: Partial<MenuCategory>) =>
     apiFetch("/resto-admin/menus/categories", {
       method: "POST",
       body: JSON.stringify(d),
     }),
-  updateCategory: (id: string, d: any) =>
+  updateCategory: (id: string, d: Partial<MenuCategory>) =>
     apiFetch(`/resto-admin/menus/categories/${id}`, {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -185,9 +231,12 @@ export const menusApi = {
       method: "POST",
       body: JSON.stringify({ categories: cats }),
     }),
-  getItems: (p?: any) => {
-    const q = p ? "?" + new URLSearchParams(cleanParams(p)).toString() : "";
-    return apiFetch<{ data: any[]; meta: any }>(`/resto-admin/menus/items${q}`);
+  getItems: (p?: QueryParams) => {
+    const q = p
+      ? "?" +
+        new URLSearchParams(cleanParams(p) as Record<string, string>).toString()
+      : "";
+    return apiFetch<PaginatedResult<MenuItem>>(`/resto-admin/menus/items${q}`);
   },
   createItem: (fd: FormData) =>
     apiFetch("/resto-admin/menus/items", { method: "POST", body: fd }),
@@ -203,9 +252,12 @@ export const menusApi = {
 };
 
 export const galleryApi = {
-  getAll: () => apiFetch<any[]>("/resto-admin/gallery"),
+  getAll: () => apiFetch<GalleryImage[]>("/resto-admin/gallery"),
   upload: (fd: FormData) =>
-    apiFetch<any>("/resto-admin/gallery/upload", { method: "POST", body: fd }),
+    apiFetch<GalleryImage>("/resto-admin/gallery/upload", {
+      method: "POST",
+      body: fd,
+    }),
   reorder: (items: { id: string; position: number }[]) =>
     apiFetch("/resto-admin/gallery/reorder", {
       method: "POST",
@@ -222,25 +274,30 @@ export const galleryApi = {
 };
 
 export const ordersApi = {
-  getStats: () => apiFetch<any>("/resto-admin/orders/stats"),
+  getStats: () => apiFetch<OrderStats>("/resto-admin/orders/stats"),
 };
 
 export const analyticsApi = {
-  getDashboard: () => apiFetch<any>("/resto-admin/analytics/dashboard"),
-  getStats: () => apiFetch<any>("/resto-admin/analytics/stats"),
-  getPeakHours: () => apiFetch<any[]>("/resto-admin/intelligence/peak-hours"),
-  getTopItems: () => apiFetch<any[]>("/resto-admin/intelligence/top-items"),
+  getDashboard: () =>
+    apiFetch<AnalyticsDashboard>("/resto-admin/analytics/dashboard"),
+  getStats: () => apiFetch<AnalyticsDashboard>("/resto-admin/analytics/stats"),
+  getPeakHours: () =>
+    apiFetch<PeakHour[]>("/resto-admin/intelligence/peak-hours"),
+  getTopItems: () =>
+    apiFetch<TopMenuItem[]>("/resto-admin/intelligence/top-items"),
   getConversionFunnel: () =>
-    apiFetch<any[]>("/resto-admin/intelligence/conversion-funnel"),
+    apiFetch<ConversionFunnelStep[]>(
+      "/resto-admin/intelligence/conversion-funnel",
+    ),
   getProfileScore: () =>
-    apiFetch<any>("/resto-admin/intelligence/profile-score"),
+    apiFetch<ProfileScore>("/resto-admin/intelligence/profile-score"),
 };
 
 export const faqApi = {
-  getAll: () => apiFetch<any[]>("/resto-admin/faq"),
-  create: (d: any) =>
+  getAll: () => apiFetch<Faq[]>("/resto-admin/faq"),
+  create: (d: Partial<Faq>) =>
     apiFetch("/resto-admin/faq", { method: "POST", body: JSON.stringify(d) }),
-  update: (id: string, d: any) =>
+  update: (id: string, d: Partial<Faq>) =>
     apiFetch(`/resto-admin/faq/${id}`, {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -255,13 +312,13 @@ export const faqApi = {
 };
 
 export const promotionsApi = {
-  getAll: () => apiFetch<any[]>("/resto-admin/promotions"),
-  create: (d: any) =>
+  getAll: () => apiFetch<Promotion[]>("/resto-admin/promotions"),
+  create: (d: Partial<Promotion>) =>
     apiFetch("/resto-admin/promotions", {
       method: "POST",
       body: JSON.stringify(d),
     }),
-  update: (id: string, d: any) =>
+  update: (id: string, d: Partial<Promotion>) =>
     apiFetch(`/resto-admin/promotions/${id}`, {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -276,8 +333,9 @@ export const promotionsApi = {
 };
 
 export const businessInfoApi = {
-  get: () => apiFetch<any>("/resto-admin/business-info"),
-  update: (d: any) =>
+  get: () =>
+    apiFetch<Restaurant["business_info"]>("/resto-admin/business-info"),
+  update: (d: Partial<Restaurant["business_info"]>) =>
     apiFetch("/resto-admin/business-info", {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -285,16 +343,21 @@ export const businessInfoApi = {
 };
 
 export const subscriptionApi = {
-  getMy: () => apiFetch<any>("/resto-admin/subscription/my"),
-  getPlans: () => apiFetch<any[]>("/plans"),
+  getMy: () => apiFetch<Subscription>("/resto-admin/subscription/my"),
+  getPlans: () => apiFetch<Plan[]>("/plans"),
 };
 
 export const superAdminApi = {
-  getRestaurants: (p?: any) => {
-    const q = p ? "?" + new URLSearchParams(cleanParams(p)).toString() : "";
-    return apiFetch<any>(`/super-admin/restaurants${q}`);
+  getRestaurants: (p?: QueryParams) => {
+    const q = p
+      ? "?" +
+        new URLSearchParams(cleanParams(p) as Record<string, string>).toString()
+      : "";
+    return apiFetch<ItemsPaginatedResult<Restaurant>>(
+      `/super-admin/restaurants${q}`,
+    );
   },
-  createRestaurant: (d: any) =>
+  createRestaurant: (d: CreateRestaurantPayload) =>
     apiFetch("/super-admin/restaurants", {
       method: "POST",
       body: JSON.stringify(d),
@@ -309,29 +372,36 @@ export const superAdminApi = {
       method: "DELETE",
     }),
   getPlatformStats: () =>
-    apiFetch<any>("/super-admin/analytics/platform-stats"),
+    apiFetch<PlatformStats>("/super-admin/analytics/platform-stats"),
   getProductPerformance: () =>
-    apiFetch<any>("/super-admin/analytics/product-performance"),
-  getAllOrders: (page = 1) => apiFetch<any>(`/super-admin/orders?page=${page}`),
-  getPeakHours: () => apiFetch<any[]>("/super-admin/intelligence/peak-hours"),
+    apiFetch<ProductPerformance>("/super-admin/analytics/product-performance"),
+  getAllOrders: (page = 1) =>
+    apiFetch<PaginatedResult<Order>>(`/super-admin/orders?page=${page}`),
+  getPeakHours: () =>
+    apiFetch<PeakHour[]>("/super-admin/intelligence/peak-hours"),
   getBasketBenchmark: () =>
-    apiFetch<any>("/super-admin/intelligence/basket-benchmark"),
+    apiFetch<BasketBenchmark>("/super-admin/intelligence/basket-benchmark"),
   getTemplatePerformance: () =>
-    apiFetch<any[]>("/super-admin/intelligence/template-performance"),
+    apiFetch<TemplatePerformance[]>(
+      "/super-admin/intelligence/template-performance",
+    ),
   getProfileScores: () =>
-    apiFetch<any[]>("/super-admin/intelligence/profile-scores"),
+    apiFetch<RestaurantProfileScore[]>(
+      "/super-admin/intelligence/profile-scores",
+    ),
   getPayments: (page = 1) =>
-    apiFetch<any>(`/super-admin/payments?page=${page}`),
-  listBackups: () => apiFetch<any[]>("/super-admin/backup"),
+    apiFetch<PaginatedResult<Payment>>(`/super-admin/payments?page=${page}`),
+  listBackups: () => apiFetch<Backup[]>("/super-admin/backup"),
   triggerBackup: () =>
     apiFetch("/super-admin/backup/trigger", { method: "POST" }),
-  getSupportTickets: () => apiFetch<any[]>("/super-admin/support/tickets"),
+  getSupportTickets: () =>
+    apiFetch<SupportTicket[]>("/super-admin/support/tickets"),
   replyTicket: (id: string, content: string) =>
     apiFetch(`/super-admin/support/tickets/${id}/reply`, {
       method: "PATCH",
       body: JSON.stringify({ content }),
     }),
-  getReports: () => apiFetch<any[]>("/super-admin/reports"),
+  getReports: () => apiFetch<Report[]>("/super-admin/reports"),
   updateReportStatus: (id: string, status: string) =>
     apiFetch(`/super-admin/reports/${id}/status`, {
       method: "PATCH",
@@ -341,17 +411,31 @@ export const superAdminApi = {
 
 // ─── Extensions super-admin pour la gestion complète des restaurants ──────────
 export const superAdminRestaurantApi = {
-  getById: (id: string) => apiFetch<any>(`/super-admin/restaurants/${id}`),
+  getById: (id: string) =>
+    apiFetch<Restaurant>(`/super-admin/restaurants/${id}`),
   resetAdminPassword: (id: string) =>
     apiFetch(`/super-admin/restaurants/${id}/reset-password`, {
       method: "POST",
     }),
-  updateIdentity: (id: string, d: any) =>
+  updateIdentity: (id: string, d: Partial<Restaurant>) =>
     apiFetch(`/super-admin/restaurants/${id}/identity`, {
       method: "PATCH",
       body: JSON.stringify(d),
     }),
-  updateDesign: (id: string, d: any) =>
+  updateDesign: (
+    id: string,
+    d: Partial<
+      Pick<
+        Restaurant,
+        | "template"
+        | "primary_color"
+        | "secondary_color"
+        | "font_family"
+        | "show_images"
+        | "dark_mode"
+      >
+    >,
+  ) =>
     apiFetch(`/super-admin/restaurants/${id}/design`, {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -366,11 +450,11 @@ export const superAdminRestaurantApi = {
       method: "DELETE",
     }),
   getMenuCategories: (restaurantId: string) =>
-    apiFetch<any[]>(
+    apiFetch<MenuCategory[]>(
       `/super-admin/restaurants/${restaurantId}/menus/categories`,
     ),
   getAnalytics: (restaurantId: string) =>
-    apiFetch<any>(
+    apiFetch<AnalyticsDashboard>(
       `/super-admin/analytics/restaurant/${restaurantId}/dashboard`,
     ),
 };
@@ -378,10 +462,10 @@ export const superAdminRestaurantApi = {
 // ─── TEAM ─────────────────────────────────────────────────────────────────────
 
 export const teamApi = {
-  getAll: () => apiFetch<any[]>("/resto-admin/team"),
-  create: (d: any) =>
+  getAll: () => apiFetch<TeamMember[]>("/resto-admin/team"),
+  create: (d: Partial<TeamMember>) =>
     apiFetch("/resto-admin/team", { method: "POST", body: JSON.stringify(d) }),
-  update: (id: string, d: any) =>
+  update: (id: string, d: Partial<TeamMember>) =>
     apiFetch(`/resto-admin/team/${id}`, {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -393,9 +477,10 @@ export const teamApi = {
 // ─── PAGE CONFIG ──────────────────────────────────────────────────────────────
 
 export const pageConfigApi = {
-  getAll: () => apiFetch<any[]>("/resto-admin/page-config"),
-  getOne: (slug: string) => apiFetch<any>(`/resto-admin/page-config/${slug}`),
-  update: (slug: string, d: any) =>
+  getAll: () => apiFetch<PageConfig[]>("/resto-admin/page-config"),
+  getOne: (slug: string) =>
+    apiFetch<PageConfig>(`/resto-admin/page-config/${slug}`),
+  update: (slug: string, d: Partial<PageConfig>) =>
     apiFetch(`/resto-admin/page-config/${slug}`, {
       method: "PATCH",
       body: JSON.stringify(d),
@@ -417,7 +502,7 @@ export const pageConfigApi = {
 
 export const testimonialsApi = {
   getAll: (restaurantId: string) =>
-    apiFetch<any[]>(`/testimonials/${restaurantId}`),
+    apiFetch<Testimonial[]>(`/testimonials/${restaurantId}`),
   toggleVisibility: (id: string, visible: boolean) =>
     apiFetch(`/resto-admin/testimonials/${id}/visibility`, {
       method: "PATCH",
@@ -432,24 +517,28 @@ export const testimonialsApi = {
 export const saRestaurantDetailApi = {
   // Menus
   getCategories: (rid: string) =>
-    apiFetch<any[]>(`/super-admin/restaurants/${rid}/menus/categories`),
+    apiFetch<MenuCategory[]>(
+      `/super-admin/restaurants/${rid}/menus/categories`,
+    ),
   // Business info
   getBusinessInfo: (rid: string) =>
-    apiFetch<any>(`/super-admin/restaurants/${rid}/business-info`),
-  updateBusinessInfo: (rid: string, d: any) =>
+    apiFetch<Restaurant["business_info"]>(
+      `/super-admin/restaurants/${rid}/business-info`,
+    ),
+  updateBusinessInfo: (rid: string, d: Partial<Restaurant["business_info"]>) =>
     apiFetch(`/super-admin/restaurants/${rid}/business-info`, {
       method: "PATCH",
       body: JSON.stringify(d),
     }),
   // Page config
   getPageConfigs: (rid: string) =>
-    apiFetch<any[]>(`/super-admin/restaurants/${rid}/page-config`),
+    apiFetch<PageConfig[]>(`/super-admin/restaurants/${rid}/page-config`),
   // Team
   getTeam: (rid: string) =>
-    apiFetch<any[]>(`/super-admin/restaurants/${rid}/team`),
+    apiFetch<TeamMember[]>(`/super-admin/restaurants/${rid}/team`),
   // Testimonials
   getTestimonials: (rid: string) =>
-    apiFetch<any[]>(`/super-admin/restaurants/${rid}/testimonials`),
+    apiFetch<Testimonial[]>(`/super-admin/restaurants/${rid}/testimonials`),
   // Subscriptions assign
   assignSubscription: (d: {
     restaurantId: string;
@@ -460,5 +549,5 @@ export const saRestaurantDetailApi = {
       method: "POST",
       body: JSON.stringify(d),
     }),
-  getPlans: () => apiFetch<any[]>("/plans"),
+  getPlans: () => apiFetch<Plan[]>("/plans"),
 };

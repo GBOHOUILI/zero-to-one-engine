@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { superAdminApi } from "@/lib/api";
+import type { Backup } from "@/lib/api-types";
 import {
   HardDrive,
   Play,
@@ -35,7 +36,7 @@ function Card({
 }
 
 export default function BackupPage() {
-  const [backups, setBackups] = useState<any[]>([]);
+  const [backups, setBackups] = useState<Backup[]>([]);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [triggered, setTriggered] = useState(false);
@@ -48,7 +49,19 @@ export default function BackupPage() {
     setLoading(false);
   }
   useEffect(() => {
-    load();
+    let ignore = false;
+    superAdminApi
+      .listBackups()
+      .then((data) => {
+        if (!ignore) setBackups(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   async function triggerBackup() {

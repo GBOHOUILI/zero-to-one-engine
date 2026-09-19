@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+import { getErrorMessage } from "@/lib/utils";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
@@ -32,8 +33,8 @@ export default function LoginPage() {
 
       // Redirection selon le rôle
       router.push(user.role === "SUPER_ADMIN" ? "/super-admin" : "/dashboard");
-    } catch (err: any) {
-      setError(err.message || "Identifiants incorrects");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Identifiants incorrects"));
     } finally {
       setLoading(false);
     }

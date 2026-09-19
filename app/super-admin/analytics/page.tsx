@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { superAdminApi } from "@/lib/api";
+import type { PlatformStats, ProductPerformance } from "@/lib/api-types";
 import {
   AreaChart,
   HorizontalBars,
@@ -41,8 +42,10 @@ function Skeleton({ className = "" }: { className?: string }) {
 }
 
 export default function SuperAdminAnalyticsPage() {
-  const [stats, setStats] = useState<any>(null);
-  const [productPerf, setProductPerf] = useState<any>(null);
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [productPerf, setProductPerf] = useState<ProductPerformance | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export default function SuperAdminAnalyticsPage() {
 
   // Revenue par plan
   const revenueByPlan = productPerf?.by_plan ?? [];
-  const planDonut = revenueByPlan.slice(0, 4).map((p: any, i: number) => ({
+  const planDonut = revenueByPlan.slice(0, 4).map((p, i) => ({
     label: p.plan,
     value: p.revenue,
     color: ["#22c55e", "#16a34a", "#15803d", "#166534"][i] ?? "#052e16",
@@ -64,8 +67,7 @@ export default function SuperAdminAnalyticsPage() {
 
   // MRR evolution (simulation depuis données)
   const mrrData =
-    stats?.mrr_history?.map((m: any) => ({ label: m.month, value: m.mrr })) ??
-    [];
+    stats?.mrr_history?.map((m) => ({ label: m.month, value: m.mrr })) ?? [];
 
   return (
     <div className="space-y-6">
@@ -137,7 +139,7 @@ export default function SuperAdminAnalyticsPage() {
             <AreaChart data={mrrData} color="#22c55e" height={110} />
           ) : (
             <div className="flex items-center justify-center h-24 text-emerald-800 text-sm">
-              Pas encore d'historique MRR
+              Pas encore d&apos;historique MRR
             </div>
           )}
         </Card>
@@ -147,7 +149,7 @@ export default function SuperAdminAnalyticsPage() {
           <div className="mb-4">
             <p className="text-white font-bold">Revenus par plan</p>
             <p className="text-emerald-800 text-xs mt-0.5">
-              Répartition du chiffre d'affaires
+              Répartition du chiffre d&apos;affaires
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -164,14 +166,14 @@ export default function SuperAdminAnalyticsPage() {
                 thickness={20}
                 centerValue={
                   planDonut.length > 0
-                    ? `${(planDonut.reduce((s: number, d: any) => s + d.value, 0) / 1000).toFixed(0)}k`
+                    ? `${(planDonut.reduce((s, d) => s + d.value, 0) / 1000).toFixed(0)}k`
                     : "—"
                 }
                 centerLabel="FCFA"
               />
             )}
             <ChartLegend
-              items={planDonut.map((d: any) => ({
+              items={planDonut.map((d) => ({
                 ...d,
                 value: `${(d.value / 1000).toFixed(0)}k`,
               }))}
@@ -192,13 +194,11 @@ export default function SuperAdminAnalyticsPage() {
           <Skeleton className="h-40" />
         ) : (
           <HorizontalBars
-            data={(productPerf?.top_restaurants ?? [])
-              .slice(0, 8)
-              .map((r: any) => ({
-                label: r.name,
-                value: r.orders,
-                sub: `${(r.revenue / 1000).toFixed(0)}k FCFA`,
-              }))}
+            data={(productPerf?.top_restaurants ?? []).slice(0, 8).map((r) => ({
+              label: r.name,
+              value: r.orders,
+              sub: `${(r.revenue / 1000).toFixed(0)}k FCFA`,
+            }))}
             color="#22c55e"
           />
         )}
@@ -219,7 +219,7 @@ export default function SuperAdminAnalyticsPage() {
               />
             </div>
           ) : (
-            stats?.recentPayments?.map((p: any, i: number) => (
+            stats?.recentPayments?.map((p, i) => (
               <motion.div
                 key={p.id}
                 initial={{ opacity: 0 }}

@@ -2,14 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { superAdminApi } from "@/lib/api";
+import type {
+  BasketBenchmark,
+  PeakHour,
+  RestaurantProfileScore,
+  TemplatePerformance,
+} from "@/lib/api-types";
 import {
   PeakHoursChart,
   DonutChart,
   HorizontalBars,
-  AreaChart,
   ChartLegend,
 } from "@/components/charts";
-import { Brain, TrendingUp, Store, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  Brain,
+  TrendingUp,
+  Store,
+  AlertTriangle,
+  Loader2,
+  type LucideIcon,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 function Card({
@@ -35,7 +47,7 @@ function CardHeader({
 }: {
   title: string;
   sub?: string;
-  icon?: any;
+  icon?: LucideIcon;
 }) {
   return (
     <div className="flex items-start justify-between mb-5">
@@ -57,10 +69,10 @@ function Skeleton({ className = "" }: { className?: string }) {
 }
 
 export default function IntelligencePage() {
-  const [peakHours, setPeakHours] = useState<any[]>([]);
-  const [basket, setBasket] = useState<any>(null);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [scores, setScores] = useState<any[]>([]);
+  const [peakHours, setPeakHours] = useState<PeakHour[]>([]);
+  const [basket, setBasket] = useState<BasketBenchmark | null>(null);
+  const [templates, setTemplates] = useState<TemplatePerformance[]>([]);
+  const [scores, setScores] = useState<RestaurantProfileScore[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,7 +112,7 @@ export default function IntelligencePage() {
 
   // Basket benchmark as horizontal bars
   const basketBars =
-    basket?.by_restaurant?.slice(0, 8).map((r: any) => ({
+    basket?.by_restaurant?.slice(0, 8).map((r) => ({
       label: r.name,
       value: Math.round(r.avg_basket),
       sub: `${(r.avg_basket / 1000).toFixed(1)}k FCFA`,
@@ -137,7 +149,7 @@ export default function IntelligencePage() {
           {
             label: "Panier moyen platform",
             value: basket
-              ? `${Math.round(basket.platform?.avg_basket / 1000)}k FCFA`
+              ? `${Math.round((basket.platform?.avg_basket ?? 0) / 1000)}k FCFA`
               : "—",
             icon: TrendingUp,
           },
@@ -214,7 +226,12 @@ export default function IntelligencePage() {
                 centerLabel="restos"
               />
             )}
-            <ChartLegend items={templateDonut} />
+            <ChartLegend
+              items={templateDonut.map((d) => ({
+                ...d,
+                value: String(d.value),
+              }))}
+            />
           </div>
         </Card>
       </div>

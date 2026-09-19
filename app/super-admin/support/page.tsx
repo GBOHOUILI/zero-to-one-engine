@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { superAdminApi } from "@/lib/api";
+import type { SupportTicket } from "@/lib/api-types";
 import {
   LifeBuoy,
   MessageSquare,
   CheckCircle2,
   Clock,
-  AlertCircle,
   Send,
   X,
   Loader2,
+  type LucideIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,7 +20,10 @@ const PRIORITY: Record<string, { label: string; color: string; bg: string }> = {
   MEDIUM: { label: "Moyen", color: "#f59e0b", bg: "#fef3c7" },
   HIGH: { label: "Élevé", color: "#ef4444", bg: "#fee2e2" },
 };
-const STATUS: Record<string, { label: string; icon: any; color: string }> = {
+const STATUS: Record<
+  string,
+  { label: string; icon: LucideIcon; color: string }
+> = {
   OPEN: { label: "Ouvert", icon: Clock, color: "#f59e0b" },
   IN_PROGRESS: { label: "En cours", icon: MessageSquare, color: "#3b82f6" },
   RESOLVED: { label: "Résolu", icon: CheckCircle2, color: "#22c55e" },
@@ -45,8 +49,8 @@ function SupportCard({
 }
 
 export default function SupportPage() {
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any>(null);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [selected, setSelected] = useState<SupportTicket | null>(null);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,7 +63,19 @@ export default function SupportPage() {
     setLoading(false);
   }
   useEffect(() => {
-    load();
+    let ignore = false;
+    superAdminApi
+      .getSupportTickets()
+      .then((data) => {
+        if (!ignore) setTickets(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   async function sendReply() {
@@ -70,18 +86,22 @@ export default function SupportPage() {
       setReply("");
       await load();
       // Refresh selected
-      setSelected((prev: any) => ({
-        ...prev,
-        messages: [
-          ...(prev.messages ?? []),
-          {
-            id: Date.now(),
-            content: reply,
-            sender_role: "SUPER_ADMIN",
-            created_at: new Date().toISOString(),
-          },
-        ],
-      }));
+      setSelected((prev) =>
+        prev
+          ? {
+              ...prev,
+              messages: [
+                ...(prev.messages ?? []),
+                {
+                  id: Date.now(),
+                  content: reply,
+                  sender_role: "SUPER_ADMIN",
+                  created_at: new Date().toISOString(),
+                },
+              ],
+            }
+          : prev,
+      );
     } catch {}
     setSending(false);
   }
@@ -227,7 +247,7 @@ export default function SupportPage() {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-                  {(selected.messages ?? []).map((msg: any, i: number) => {
+                  {(selected.messages ?? []).map((msg, i) => {
                     const isSA = msg.sender_role === "SUPER_ADMIN";
                     return (
                       <div

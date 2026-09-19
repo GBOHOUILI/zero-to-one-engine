@@ -3,10 +3,11 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { galleryApi } from "@/lib/api";
+import type { GalleryImage } from "@/lib/api-types";
+import { getErrorMessage } from "@/lib/utils";
 import {
   Upload,
   Trash2,
-  GripVertical,
   Edit2,
   Check,
   X,
@@ -15,15 +16,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-interface GalleryItem {
-  id: string;
-  image_url: string;
-  alt_text?: string;
-  position: number;
-}
-
 export default function GalleryPage() {
-  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [items, setItems] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
@@ -39,10 +33,22 @@ export default function GalleryPage() {
     setLoading(false);
   }
   useEffect(() => {
-    load();
+    let ignore = false;
+    galleryApi
+      .getAll()
+      .then((data) => {
+        if (!ignore) setItems(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
-  async function handleFiles(files: FileList | null) {
+  const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files?.length) return;
     setUploading(true);
     setError("");
@@ -53,17 +59,20 @@ export default function GalleryPage() {
         .forEach((f) => fd.append("files", f));
       await galleryApi.upload(fd);
       await load();
-    } catch (e: any) {
-      setError(e.message || "Erreur lors de l'upload");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, "Erreur lors de l'upload"));
     }
     setUploading(false);
-  }
-
-  const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    handleFiles(e.dataTransfer.files);
   }, []);
+
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      handleFiles(e.dataTransfer.files);
+    },
+    [handleFiles],
+  );
 
   async function saveAlt(id: string) {
     await galleryApi.updateAltText(id, altValue).catch(() => {});
@@ -95,8 +104,8 @@ export default function GalleryPage() {
             Galerie
           </h1>
           <p className="text-zinc-400 text-sm mt-0.5">
-            {items.length} photo{items.length !== 1 ? "s" : ""} · jusqu'à 20
-            images
+            {items.length} photo{items.length !== 1 ? "s" : ""} · jusqu&apos;à
+            20 images
           </p>
         </div>
         <div className="flex gap-2">

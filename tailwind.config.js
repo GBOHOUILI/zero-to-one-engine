@@ -1,6 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-require("tailwindcss/colors");
-
 module.exports = {
   darkMode: ["class"],
   content: [

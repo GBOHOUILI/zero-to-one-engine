@@ -30,13 +30,13 @@ export default function TestimonialCarousel({
     return 1; // mobile: 1 carte
   };
 
-  // Après le montage, calculer le bon nombre de colonnes
+  // Calcule le bon nombre de colonnes après le montage (le state part de 1
+  // pour que le rendu serveur et le premier rendu client soient identiques,
+  // donc ce recalcul ne peut pas passer par un lazy initializer sans
+  // réintroduire le mismatch d'hydratation) et le tient à jour au resize.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleCount(getVisibleCount());
-  }, []);
-
-  // Mettre à jour le nombre visible au redimensionnement
-  useEffect(() => {
     const handleResize = () => setVisibleCount(getVisibleCount());
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);

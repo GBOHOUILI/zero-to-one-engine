@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { menusApi } from "@/lib/api";
+import type { MenuCategory, MenuItem } from "@/lib/api-types";
 import {
   Plus,
   Trash2,
@@ -12,27 +13,14 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
-  Image,
+  Image as ImageIcon,
   X,
   Check,
 } from "lucide-react";
 
-// ─── Types légers ────────────────────────────────────────────────────────────
-interface Category {
-  id: string;
-  name: string;
-  icon?: string;
-  position: number;
-  menu_items: Item[];
-}
-interface Item {
-  id: string;
-  name: string;
-  price: number;
-  available: boolean;
-  image_url?: string;
-  short_description?: string;
-}
+// GET /resto-admin/menus/categories renvoie toujours les plats nichés.
+type Item = MenuItem;
+type Category = MenuCategory & { menu_items: MenuItem[] };
 
 // ─── Sous-composant: Form item ────────────────────────────────────────────────
 function ItemForm({
@@ -124,7 +112,7 @@ function ItemForm({
           onClick={() => fileRef.current?.click()}
           className="flex items-center gap-2 px-3 py-1.5 border border-zinc-200 rounded-lg text-xs text-zinc-600 hover:bg-zinc-100 transition-colors"
         >
-          <Image size={13} />
+          <ImageIcon size={13} />
           {file
             ? file.name
             : initial?.image_url
@@ -175,19 +163,37 @@ export default function MenusPage() {
   async function load() {
     setLoading(true);
     try {
-      setCategories(await menusApi.getCategories());
+      // Cet endpoint niche toujours menu_items ; MenuCategory le déclare
+      // optionnel car ce n'est pas vrai pour tous les endpoints qui le renvoient.
+      setCategories((await menusApi.getCategories()) as Category[]);
     } catch {}
     setLoading(false);
   }
 
   useEffect(() => {
-    load();
+    let ignore = false;
+    menusApi
+      .getCategories()
+      .then((data) => {
+        if (!ignore) setCategories(data as Category[]);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   function toggleCat(id: string) {
     setOpenCats((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
@@ -348,7 +354,7 @@ export default function MenusPage() {
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center flex-shrink-0">
-                            <Image size={14} className="text-zinc-400" />
+                            <ImageIcon size={14} className="text-zinc-400" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
@@ -421,7 +427,7 @@ export default function MenusPage() {
 
         {categories.length === 0 && (
           <div className="text-center py-16 text-zinc-400">
-            <p className="font-medium">Aucune catégorie pour l'instant</p>
+            <p className="font-medium">Aucune catégorie pour l&apos;instant</p>
             <p className="text-sm mt-1">
               Créez votre première catégorie pour commencer
             </p>

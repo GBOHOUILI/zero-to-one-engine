@@ -3,25 +3,18 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { faqApi } from "@/lib/api";
+import type { Faq } from "@/lib/api-types";
 import {
   Plus,
   Trash2,
   Edit2,
   GripVertical,
   Check,
-  X,
   Loader2,
   HelpCircle,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-
-interface Faq {
-  id: string;
-  question: string;
-  answer: string;
-  position: number;
-}
 
 function FaqEditor({
   initial,
@@ -93,7 +86,19 @@ export default function FaqPage() {
     setLoading(false);
   }
   useEffect(() => {
-    load();
+    let ignore = false;
+    faqApi
+      .getAll()
+      .then((data) => {
+        if (!ignore) setFaqs(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   async function save(q: string, a: string) {
@@ -247,7 +252,7 @@ export default function FaqPage() {
               <HelpCircle size={22} className="text-zinc-300" />
             </div>
             <p className="text-zinc-500 font-medium">
-              Aucune FAQ pour l'instant
+              Aucune FAQ pour l&apos;instant
             </p>
             <p className="text-zinc-400 text-sm mt-1">
               Ajoutez des questions fréquentes pour rassurer vos clients

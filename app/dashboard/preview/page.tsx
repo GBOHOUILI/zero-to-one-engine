@@ -8,7 +8,7 @@ import {
   Tablet,
   RefreshCw,
   ExternalLink,
-  X,
+  type LucideIcon,
 } from "lucide-react";
 
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
@@ -17,7 +17,7 @@ type Device = "desktop" | "tablet" | "mobile";
 
 const DEVICE_CONFIG: Record<
   Device,
-  { width: string; label: string; icon: any }
+  { width: string; label: string; icon: LucideIcon }
 > = {
   desktop: { width: "100%", label: "Bureau", icon: Monitor },
   tablet: { width: "768px", label: "Tablette", icon: Tablet },
@@ -54,7 +54,7 @@ export default function PreviewPage() {
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Prévisualisation</h1>
           <p className="text-zinc-500 text-sm">
-            Voir votre site tel qu'il apparaît aux visiteurs
+            Voir votre site tel qu&apos;il apparaît aux visiteurs
           </p>
         </div>
         <a
@@ -90,22 +90,25 @@ export default function PreviewPage() {
         <div className="ml-auto flex items-center gap-2">
           {/* Device switcher */}
           <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-1">
-            {(Object.entries(DEVICE_CONFIG) as [Device, any][]).map(
-              ([d, cfg]) => (
-                <button
-                  key={d}
-                  onClick={() => setDevice(d)}
-                  title={cfg.label}
-                  className={`p-1.5 rounded-md transition-all ${
-                    device === d
-                      ? "bg-white shadow text-zinc-900"
-                      : "text-zinc-500 hover:text-zinc-700"
-                  }`}
-                >
-                  <cfg.icon size={16} />
-                </button>
-              ),
-            )}
+            {(
+              Object.entries(DEVICE_CONFIG) as [
+                Device,
+                (typeof DEVICE_CONFIG)[Device],
+              ][]
+            ).map(([d, cfg]) => (
+              <button
+                key={d}
+                onClick={() => setDevice(d)}
+                title={cfg.label}
+                className={`p-1.5 rounded-md transition-all ${
+                  device === d
+                    ? "bg-white shadow text-zinc-900"
+                    : "text-zinc-500 hover:text-zinc-700"
+                }`}
+              >
+                <cfg.icon size={16} />
+              </button>
+            ))}
           </div>
 
           <button

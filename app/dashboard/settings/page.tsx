@@ -2,17 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { restaurantApi, subscriptionApi, businessInfoApi } from "@/lib/api";
+import type { OpeningHour, Subscription } from "@/lib/api-types";
 import {
   PageHeader,
   Card,
-  Input,
   Select,
   Toggle,
   Tabs,
   SaveBtn,
   toast,
   Sk,
-  Badge,
 } from "@/components/dashboard/ui";
 import {
   Palette,
@@ -51,11 +50,19 @@ const TABS = [
   { id: "business", label: "Business", icon: CreditCard },
 ];
 
+interface DesignForm {
+  primary_color: string;
+  secondary_color: string;
+  font_family: string;
+  template: string;
+  dark_mode: boolean;
+}
+
 export default function SettingsPage() {
-  const [sub, setSub] = useState<any>(null);
+  const [sub, setSub] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("design");
-  const [design, setDesign] = useState({
+  const [design, setDesign] = useState<DesignForm>({
     primary_color: "#16a34a",
     secondary_color: "",
     font_family: "",
@@ -74,7 +81,7 @@ export default function SettingsPage() {
     instagram: "",
     tiktok: "",
   });
-  const [hours, setHours] = useState<any[]>([]);
+  const [hours, setHours] = useState<OpeningHour[]>([]);
   const [biz, setBiz] = useState({
     delivery_fee: 0,
     capacity: 0,
@@ -82,11 +89,11 @@ export default function SettingsPage() {
     payment_methods: [] as string[],
   });
 
-  const sd = (k: string, v: any) => {
+  function sd<K extends keyof DesignForm>(k: K, v: DesignForm[K]) {
     setDesign((p) => ({ ...p, [k]: v }));
     if (k === "primary_color")
-      document.documentElement.style.setProperty("--brand", v);
-  };
+      document.documentElement.style.setProperty("--brand", String(v));
+  }
 
   useEffect(() => {
     Promise.allSettled([
@@ -117,7 +124,7 @@ export default function SettingsPage() {
             open_time: "08:00",
             close_time: "22:00",
             is_closed: false,
-            ...ex.find((h: any) => h.day_of_week === i),
+            ...ex.find((h) => h.day_of_week === i),
           })),
         );
       }),
@@ -388,13 +395,13 @@ export default function SettingsPage() {
 
       {tab === "socials" && (
         <Card className="p-6 space-y-4">
-          {["facebook", "instagram", "tiktok"].map((k) => (
+          {(["facebook", "instagram", "tiktok"] as const).map((k) => (
             <div key={k}>
               <label className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-1.5 block">
                 {k[0].toUpperCase() + k.slice(1)}
               </label>
               <input
-                value={(socials as any)[k]}
+                value={socials[k]}
                 onChange={(e) =>
                   setSocials((p) => ({ ...p, [k]: e.target.value }))
                 }

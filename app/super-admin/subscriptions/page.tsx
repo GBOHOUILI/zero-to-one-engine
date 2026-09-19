@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { superAdminApi } from "@/lib/api";
+import type { PaginatedResult, Payment } from "@/lib/api-types";
 import { DonutChart, ChartLegend } from "@/components/charts";
 import {
-  CreditCard,
   Plus,
   Check,
   X,
@@ -29,14 +29,6 @@ function Card({
     </div>
   );
 }
-function Skeleton({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={`bg-emerald-900/20 rounded-xl animate-pulse ${className}`}
-    />
-  );
-}
-
 const METHOD_LABELS: Record<string, string> = {
   MTN_MOMO: "MTN MoMo",
   MOOV_MONEY: "Moov Money",
@@ -47,7 +39,10 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export default function SubscriptionsPage() {
-  const [payments, setPayments] = useState<any>({ data: [], meta: {} });
+  const [payments, setPayments] = useState<PaginatedResult<Payment>>({
+    data: [],
+    meta: { total: 0, page: 1, limit: 10 },
+  });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showPlanForm, setShowPlanForm] = useState(false);
@@ -61,15 +56,24 @@ export default function SubscriptionsPage() {
   });
   const [creating, setCreating] = useState(false);
 
-  async function load() {
-    setLoading(true);
-    try {
-      setPayments(await superAdminApi.getPayments(page));
-    } catch {}
-    setLoading(false);
-  }
   useEffect(() => {
-    load();
+    let ignore = false;
+    // Resets loading state before a dependency-driven fetch, per
+    // react.dev/learn/you-might-not-need-an-effect#fetching-data.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    superAdminApi
+      .getPayments(page)
+      .then((data) => {
+        if (!ignore) setPayments(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, [page]);
 
   async function createPlan() {
@@ -79,23 +83,23 @@ export default function SubscriptionsPage() {
     setShowPlanForm(false);
   }
 
-  const data = payments?.data ?? [];
-  const meta = payments?.meta ?? {};
+  const data = payments.data;
+  const meta = payments.meta;
 
   // Donut méthodes de paiement
   const methodCounts: Record<string, number> = {};
-  data.forEach((p: any) => {
+  data.forEach((p) => {
     methodCounts[p.method] = (methodCounts[p.method] ?? 0) + p.amount;
   });
   const methodDonut = Object.entries(methodCounts)
     .slice(0, 4)
     .map(([k, v], i) => ({
       label: METHOD_LABELS[k] || k,
-      value: v as number,
+      value: v,
       color: ["#22c55e", "#16a34a", "#f59e0b", "#3b82f6"][i] ?? "#052e16",
     }));
 
-  const totalRevenue = data.reduce((s: number, p: any) => s + p.amount, 0);
+  const totalRevenue = data.reduce((s, p) => s + p.amount, 0);
 
   return (
     <div className="space-y-6">
@@ -204,7 +208,7 @@ export default function SubscriptionsPage() {
                 </td>
               </tr>
             ) : (
-              data.map((p: any, i: number) => (
+              data.map((p, i) => (
                 <motion.tr
                   key={p.id}
                   initial={{ opacity: 0 }}
@@ -256,10 +260,10 @@ export default function SubscriptionsPage() {
           </tbody>
         </table>
 
-        {meta.lastPage > 1 && (
+        {(meta.lastPage ?? 1) > 1 && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-emerald-900/30">
             <p className="text-emerald-800 text-xs">
-              Page {page}/{meta.lastPage} · {meta.total} paiements
+              Page {page}/{meta.lastPage ?? 1} · {meta.total} paiements
             </p>
             <div className="flex gap-2">
               <button
@@ -270,7 +274,9 @@ export default function SubscriptionsPage() {
                 <ChevronLeft size={16} />
               </button>
               <button
-                onClick={() => setPage((p) => Math.min(meta.lastPage, p + 1))}
+                onClick={() =>
+                  setPage((p) => Math.min(meta.lastPage ?? 1, p + 1))
+                }
                 disabled={page === meta.lastPage}
                 className="p-1.5 text-emerald-700 hover:text-emerald-400 disabled:opacity-30 transition-colors"
               >
@@ -295,21 +301,28 @@ export default function SubscriptionsPage() {
               </button>
             </div>
             <div className="space-y-4">
-              {[
-                { field: "name", label: "Nom du plan", placeholder: "Starter" },
-                {
-                  field: "price",
-                  label: "Prix (FCFA/mois)",
-                  placeholder: "15000",
-                  type: "number",
-                },
-                {
-                  field: "max_menu_items",
-                  label: "Max plats",
-                  placeholder: "30",
-                  type: "number",
-                },
-              ].map(({ field, label, placeholder, type }) => (
+              {(
+                [
+                  {
+                    field: "name",
+                    label: "Nom du plan",
+                    placeholder: "Starter",
+                    type: "text",
+                  },
+                  {
+                    field: "price",
+                    label: "Prix (FCFA/mois)",
+                    placeholder: "15000",
+                    type: "number",
+                  },
+                  {
+                    field: "max_menu_items",
+                    label: "Max plats",
+                    placeholder: "30",
+                    type: "number",
+                  },
+                ] as const
+              ).map(({ field, label, placeholder, type }) => (
                 <div key={field}>
                   <label className="text-emerald-700 text-xs font-medium mb-1.5 block uppercase tracking-wider">
                     {label}
@@ -317,7 +330,7 @@ export default function SubscriptionsPage() {
                   <input
                     type={type || "text"}
                     placeholder={placeholder}
-                    value={(plan as any)[field]}
+                    value={plan[field]}
                     onChange={(e) =>
                       setPlan({ ...plan, [field]: e.target.value })
                     }
@@ -326,17 +339,19 @@ export default function SubscriptionsPage() {
                 </div>
               ))}
               <div className="flex gap-4">
-                {[
-                  { field: "analytics", label: "Analytics" },
-                  { field: "custom_domain", label: "Domaine perso" },
-                ].map(({ field, label }) => (
+                {(
+                  [
+                    { field: "analytics", label: "Analytics" },
+                    { field: "custom_domain", label: "Domaine perso" },
+                  ] as const
+                ).map(({ field, label }) => (
                   <label
                     key={field}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <input
                       type="checkbox"
-                      checked={(plan as any)[field]}
+                      checked={plan[field]}
                       onChange={(e) =>
                         setPlan({ ...plan, [field]: e.target.checked })
                       }

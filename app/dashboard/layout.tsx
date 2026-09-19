@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/auth-store";
 import { restaurantApi } from "@/lib/api";
+import type { Restaurant } from "@/lib/api-types";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import { ToastProvider } from "@/components/dashboard/ui";
 import { Loader2 } from "lucide-react";
@@ -17,7 +18,7 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
-  const [restaurant, setRestaurant] = useState<any>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [dashDark, setDashDark] = useState(false);
 
@@ -47,7 +48,7 @@ export default function DashboardLayout({
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, router]);
 
   function toggleDark() {
     const next = !dashDark;
